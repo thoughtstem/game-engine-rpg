@@ -1,0 +1,78 @@
+#lang racket
+
+(define outdoor-set
+  (bitmap "images/outdoor-set-1.png"))
+
+(define house-set
+  (bitmap "images/interior-set-1.png"))
+
+
+(define bed
+  (freeze
+   (crop (* 15 32) (- (* 2 32) 16)
+         (* 1 32) (* 2 32)
+         house-set)))
+
+(define pillow
+  (freeze
+   (crop (* 15 32) (* 7 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define mat
+  (freeze
+   (crop (* 13 32) (* 2 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define barrel
+  (freeze
+   (crop (* 14 32) (* 0 32)
+         (* 1 32) (* 2 32)
+         house-set)))
+
+(define wood-tile
+  (freeze
+   (crop (* 4 32) (* 7 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define grass-tile
+  (freeze
+   (crop (* 0 32) (* 0 32)
+         (* 1 32) (* 1 32)
+         outdoor-set)))
+
+(define dark-grass-tile
+  (overlay
+   (square 32 'solid (make-color 0 0 0 200))
+   grass-tile))
+
+(define base-board-tile
+  (freeze
+   (crop (* 5 32) (* 14 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define (make-decoration i (static? #f))
+  (define e (sprite->entity i
+                            #:name "decoration"
+                            #:position (posn 0 0)))
+
+  (if (not static?) e
+      (add-components e 
+                      (static)
+                      (physical-collider))))
+
+(define bed-entity
+  (make-decoration bed #t))
+
+(define barrel-entity
+  (make-decoration barrel #t))
+
+(define pillow-entity
+  (make-decoration pillow))
+
+(define mat-entity
+  (make-decoration mat))
+
