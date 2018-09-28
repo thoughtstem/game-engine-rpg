@@ -1,0 +1,90 @@
+#lang racket
+
+(require game-engine)
+
+
+
+;This will be the component for the doorway/portal/house/edge-of-screen, etc.
+(struct link (to) #:transparent)
+
+
+;This will be the component on the player...  Will check for collisions with links,
+;  Will store data for prior worlds visited...
+;  Will do the dynamic loading.
+;  Will call the world transition functions, etc...
+(struct world-manager (data) #:transparent)
+
+(define (entrance-function p)
+    (define enter (dynamic-require (build-path (string->path p) "main.rkt") 'enter))
+    enter)
+
+(define (try-follow-link g e c l)
+  (define l-to (link-to l))
+  
+  (displayln (~a "Trying to follow to... " l-to))
+
+  (define enter (entrance-function l-to))
+
+  (displayln enter)
+  
+  e)
+
+(define (update-world-manager g e c)
+  (define touching (colliding-with e g))
+  (define links-touching (filter (has-component? link?) touching))
+
+  (if (not (empty? links-touching))
+      (try-follow-link g e c (get-component (first links-touching) link?))
+      e))
+
+(new-component world-manager? update-world-manager)
+
+
+;TEST!
+(define player
+  (sprite->entity (circle 10 'solid 'red)
+                  #:name "player"
+                  #:position (posn 0 0)
+                  #:components
+                  (key-movement 5)
+                  (world-manager #f)
+                  (physical-collider)))
+
+
+(define portal
+  (sprite->entity (square 50 'solid 'blue)
+                  #:name "portal"
+                  #:position (posn 200 200)
+                  #:components
+                  (static)
+                  (physical-collider)
+                  (link "/Users/thoughtstem/Desktop/Test")))
+
+(define bg
+  (sprite->entity (square 400 'solid 'black)
+                  #:name "bg"
+                  #:position (posn 0 0)))
+
+(start-game player
+            portal
+            bg)
+
+
+;Player approaches house outdoors
+;House has a hyperlink on it
+;Player collides with house.
+;Dynamically load the transition function (game -> game)
+;  > Can do this earlier for optimization
+;Pass in the current game state, get the new game state.
+;  Replace old state with new state.
+;  Store old state within the player's world-manager component
+
+;On subsequent dynamic loads, check the world-manager before doing the load.
+;  Local storage for persistent state.  (Can serialize out for save/load?)
+
+
+
+
+
+
+

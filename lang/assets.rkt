@@ -12,11 +12,13 @@
 (define outdoor-set
   (bitmap "images/outdoor-set-1.png"))
 
+
 (define house-set
   (bitmap "images/interior-set-1.png"))
 
 (define barrel-set
   (bitmap "images/barrels.png"))
+
 
 
 (define wall-tile
@@ -133,15 +135,25 @@
 (define empty-barrel
   (make-decoration empty-barrel-tile #t))
 
-(define apple-barrel
-  (add-component
+(define (empty-apple-barrel)
+  (make-decoration empty-barrel-tile #t))
+
+(define (apple-barrel)
+  (add-components
    (make-decoration apple-barrel-tile #t)
-   (on-key 'space
-           (change-sprite
-            (new-sprite empty-barrel-tile)))
+   
    (on-collide "player"
-               (change-sprite
-                (new-sprite empty-barrel-tile)))))
+               (do-many (λ(g e)
+                          ((spawn (empty-apple-barrel)) g e))
+                        
+                        (λ(g e)
+                          (add-component e (after-time 1 die)))))
+   (on-collide "hero"
+               (do-many (λ(g e)
+                          ((spawn (empty-apple-barrel)) g e))
+                        
+                        (λ(g e)
+                          (add-component e (after-time 1 die)))))))
 
 
 (define bed
@@ -158,6 +170,147 @@
 
 (define sword-wall-hanging
   (make-decoration sword-tile))
+
+
+
+
+
+(provide red-house-style
+         green-house-style
+         brown-house-style
+
+         closed-door
+         open-door
+
+         sword-sign
+         shield-sign
+         potion-sign
+
+         house-exterior)
+
+(define overworld-set
+  (bitmap "images/house-overworld-1.png"))
+
+(define red-house-style
+  (freeze
+   (crop (* 0 32) (* 3 32)
+         (* 3 32) (* 4 32)
+         overworld-set)))
+
+
+(define green-house-style
+  (freeze
+   (crop (* 0 32) (* 7 32)
+         (* 3 32) (* 4 32)
+         overworld-set)))
+
+
+(define brown-house-style
+  (freeze
+   (crop (* 3 32) (* 3 32)
+         (* 3 32) (* 4 32)
+         overworld-set)))
+
+(define closed-door
+  (freeze
+   (crop (* 1 32) (* 0 32)
+         (* 1 32) (* 1 32)
+         overworld-set)))
+
+(define open-door
+  (freeze
+   (crop (* 2 32) (* 0 32)
+         (* 1 32) (* 1 32)
+         overworld-set)))
+
+(define sword-sign
+  (freeze
+   (crop (* 0 32) (* 1 32)
+         (* 1 32) (* 1 32)
+         overworld-set)))
+
+(define shield-sign
+  (freeze
+   (crop (* 1 32) (* 1 32)
+         (* 1 32) (* 1 32)
+         overworld-set)))
+
+(define potion-sign
+  (freeze
+   (crop (* 2 32) (* 1 32)
+         (* 1 32) (* 1 32)
+         overworld-set)))
+
+
+;Can we make this an entity?
+;  How cool can it be?
+(define (house-exterior style door (sign empty-image))
+  (overlay/offset
+   sign
+   0 -20
+   (overlay/align "middle" "bottom"
+                  door
+                  style)))
+
+
+
+
+
+
+(provide portal
+         portal-style-1)
+
+;https://opengameart.org/content/portals
+(define portal-rings-1
+  (bitmap "images/portalRings1.png"))
+
+(define (portal-rings-1-row n)
+  (freeze
+   (crop (* 0 32) (* n 32)
+         (* 4 32) (* 1 32)
+         portal-rings-1)))
+
+(define last-portal-frame
+  (freeze
+   (crop (* 0 32) (* 4 32)
+         (* 1 32) (* 1 32)
+         portal-rings-1)))
+
+(define portal-style-1
+  (beside (portal-rings-1-row 0)
+          (portal-rings-1-row 1)
+          (portal-rings-1-row 2)
+          (portal-rings-1-row 3)
+          last-portal-frame))
+
+(define (portal style)
+  (sprite->entity
+   (sheet->sprite style
+    #:rows       1
+    #:columns    17
+    #:row-number 1
+    #:speed      3)
+   #:name "portal"
+   #:position (posn 0 0)))
+
+
+;Maybe for maching squares later?
+
+(provide stone-platform-tile)
+
+(define outdoor-set-2
+  (bitmap "images/outdoor-set-2.png"))
+
+(define stone-platform-tile
+  (freeze
+   (crop (* 12 32) (* 1 32)
+         (* 2 32) (* 2 32)
+         outdoor-set-2)))
+
+
+
+
+
 
 
 

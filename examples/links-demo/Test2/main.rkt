@@ -10,7 +10,14 @@
          game-engine-rpg)
 
 
-
+(define exit-door
+  (sprite->entity (square 30 'solid 'brown)
+                  #:name "exit-door"
+                  #:position (posn 0 0)
+                  #:components
+                  (static)
+                  (physical-collider)
+                  (link "./Test")))
 
 (define door    (room 1 1 wood-tile
                        #;(square 32 'solid 'green)))
@@ -44,22 +51,44 @@
                sword-wall-hanging) r))
 
 (define little-room
-  (beside-room (add-back-wall (place-in-room r bed))
+  (beside-room (add-back-wall (place-in-room
+                               (place-in-room r bed)
+                               (nudge-down 2 exit-door)))
                (nudge-down 3 door)
                (add-back-wall (place-in-room r (apple-barrel)))))
 
 (define (little-room-game p)
+  #;(room-list->entity-list little-room)
   (cons p
         (room-list->entity-list little-room)))
 
+
+(define (default-player)
+  (add-component
+   (basic-hero (posn 10 100))
+   (link-follower)))
+
+
+(define (player g)
+  (or (and g (game->link-follower g))
+      (default-player)))
+
 (define (enter g)
-  (little-room-game (basic-hero (posn 20 20))))
+  (little-room-game
+   (set-posn
+    (player g)
+    (posn 30 150))))
 
 (module+ test
-    #;(start-game little-room-game)
-    (test-room #;little-room
-               big-house
-               #;(beside-room (nudge-down 1 door) r door)))
+  (start-game (enter #f))
+  #;(test-room little-room)
+
+
+  #;(test-room 
+     #;little-room
+     #;house
+     #;big-house
+     #;(beside-room (nudge-down 1 door) r door)))
 
 
 

@@ -1,0 +1,68 @@
+#lang racket
+
+(require game-engine)
+
+;This will be the component for the doorway/portal/house/edge-of-screen, etc.
+(struct link (to) #:transparent)
+
+
+;This will be the component on the player...  Will check for collisions with links,
+;  Will store data for prior worlds visited...
+;  Will do the dynamic loading.
+;  Will call the world transition functions, etc...
+(struct world-manager (data next-entrance-function) #:transparent)
+
+(define (entrance-function p)
+    (define enter (dynamic-require (build-path (string->path p) "main.rkt") 'enter))
+    enter)
+
+(define (try-resolve-link g e c l)
+  (define l-to (link-to l))
+  
+  (displayln (~a "Trying to follow link to... " l-to))
+
+  (define enter (entrance-function l-to))
+
+  ;Call this enter function later in the game update...
+  ;  Store the current world in world manager data hash. (What's the key??)
+  
+  
+  (update-entity e world-manager?
+                 (struct-copy world-manager c
+                              [data (world-manager-data c)]
+                              [next-entrance-function enter])))
+
+
+
+(define (try-switch-worlds g enter)
+  ;The simplest way to enter.  Just call the entrance function
+  ;  on the old game state, and whatever is returned becomes the
+  ;  new game...
+  (struct-copy game g
+               [entities (map chipmunkify (enter g))]))
+
+(define (maybe-switch-worlds g)
+  (define world-manager-es (filter (has-component? world-manager?) (game-entities g)))
+  ;BTW, There really should only be 1 or 0 entities with a world-manager
+
+  (define entrance-functions
+    (filter identity
+            (map world-manager-next-entrance-function
+                 (map (curryr get-component world-manager?)
+                      world-manager-es))))
+
+  (if (empty? entrance-functions)
+      g
+      (try-switch-worlds g (first entrance-functions))))
+
+(define (update-world-manager g e c)
+  (define touching (colliding-with e g))
+  (define links-touching (filter (has-component? link?) touching))
+
+  (if (not (empty? links-touching))
+      (try-resolve-link g e c (get-component (first links-touching) link?))
+      e))
+
+(new-component world-manager? update-world-manager)
+
+(new-game-function maybe-switch-worlds)

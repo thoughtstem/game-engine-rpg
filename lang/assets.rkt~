@@ -1,31 +1,79 @@
 #lang racket
 
+(provide (all-defined-out))
+
+(require 2htdp/image
+         game-engine)
+
+;NOTE.  Don't use these assets in production.
+;  Copyright stuff.
+;  Educational use is fine...
+
 (define outdoor-set
   (bitmap "images/outdoor-set-1.png"))
 
 (define house-set
   (bitmap "images/interior-set-1.png"))
 
+(define barrel-set
+  (bitmap "images/barrels.png"))
 
-(define bed
+
+(define wall-tile
+  (freeze
+   (crop (* 0 32) (* 14 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define wall-top-tile
+  (freeze
+   (crop (* 0 32) (* 13 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define wall-top-bumper-tile
+  (freeze
+   (crop 0 0
+         32 16
+         wall-top-tile)))
+
+(define wall-side-tile
+  (freeze
+   (crop (* 0 32) (* 11 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define wall-side-bumper-tile
+  (freeze
+   (crop 24 0
+         32 32
+         wall-side-tile)))
+
+(define bed-tile
   (freeze
    (crop (* 15 32) (- (* 2 32) 16)
          (* 1 32) (* 2 32)
          house-set)))
 
-(define pillow
+(define pillow-tile
   (freeze
    (crop (* 15 32) (* 7 32)
          (* 1 32) (* 1 32)
          house-set)))
 
-(define mat
+(define mat-tile
   (freeze
    (crop (* 13 32) (* 2 32)
          (* 1 32) (* 1 32)
          house-set)))
 
-(define barrel
+(define sword-tile
+  (freeze
+   (crop (* 13 32) (* 3 32)
+         (* 1 32) (* 1 32)
+         house-set)))
+
+(define barrel-tile
   (freeze
    (crop (* 14 32) (* 0 32)
          (* 1 32) (* 2 32)
@@ -54,6 +102,23 @@
          (* 1 32) (* 1 32)
          house-set)))
 
+
+(define apple-barrel-tile
+  (freeze
+   (crop (* 0 31) (* 1 31)
+         (* 1 31) (* 1 31)
+         barrel-set)))
+
+(define empty-barrel-tile
+  (freeze
+   (crop (* 7 31) (* 5 31)
+         (* 1 31) (* 1 31)
+         barrel-set)))
+
+
+
+
+
 (define (make-decoration i (static? #f))
   (define e (sprite->entity i
                             #:name "decoration"
@@ -64,15 +129,49 @@
                       (static)
                       (physical-collider))))
 
-(define bed-entity
-  (make-decoration bed #t))
 
-(define barrel-entity
-  (make-decoration barrel #t))
+(define empty-barrel
+  (make-decoration empty-barrel-tile #t))
 
-(define pillow-entity
-  (make-decoration pillow))
+(define (empty-apple-barrel)
+  (make-decoration empty-barrel-tile #t))
 
-(define mat-entity
-  (make-decoration mat))
+(define (apple-barrel)
+  (add-components
+   (make-decoration apple-barrel-tile #t)
+   
+   (on-collide "player"
+               (do-many (λ(g e)
+                          ((spawn (empty-apple-barrel)) g e))
+                        
+                        (λ(g e)
+                          (add-component e (after-time 1 die)))))
+   (on-collide "hero"
+               (do-many (λ(g e)
+                          ((spawn (empty-apple-barrel)) g e))
+                        
+                        (λ(g e)
+                          (add-component e (after-time 1 die)))))))
+
+
+(define bed
+  (make-decoration bed-tile #t))
+
+(define barrel
+  (make-decoration barrel-tile #t))
+
+(define pillow
+  (make-decoration pillow-tile))
+
+(define mat
+  (make-decoration mat-tile))
+
+(define sword-wall-hanging
+  (make-decoration sword-tile))
+
+
+
+
+
+
 

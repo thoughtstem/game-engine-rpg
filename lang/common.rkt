@@ -12,12 +12,16 @@
          room-height
          room-list->entity-list
          test-room
-         (all-from-out "./assets.rkt"))
+         (all-from-out "./assets.rkt")
+         (all-from-out "./heros.rkt")
+         (all-from-out "./links.rkt"))
 
 (require 2htdp/image)
 (require (prefix-in h: lang/posn))
 (require game-engine)
+(require "./heros.rkt")
 (require "./assets.rkt")
+(require "./links.rkt")
 
 (module+ test
   (require rackunit))
@@ -558,6 +562,7 @@
                   ;(disabled)
                   (storage "original-line" (list l))
                   (static)
+                  (bake)
                   (physical-collider)
                   #;(disabled)
                   #;(hidden)
@@ -728,12 +733,33 @@
     (cons e (map (curry fix-posn e)
                  es)))
 
-  (sort
-   (flatten (map explode-stored-entities rooms-with-walls))
-   (λ(a b)
-     (> (y a)
-        (y b)))
-   ))
+  (define es (sort
+              (flatten (map explode-stored-entities rooms-with-walls))
+              (λ(a b)
+                (> (y a)
+                   (y b)))))
+
+
+  (define house-bg (overlay/align "left" "top"
+                                  (room->image rs)
+                                  (rectangle (+ 32 (room-width rs))
+                                             (+ 32 (room-height rs))
+                                             'solid 'transparent)))
+  (define bg-entity
+    (sprite->entity (overlay/align "left" "top"
+                                   house-bg
+                                   (texture-with
+                                    (square (+ 32 (max (room-width rs)
+                                                       (room-height rs))) 'solid 'black)
+                                    dark-grass-tile))
+                    #:name     "bg"
+                    #:position (posn 0 0)
+                    #:components (static)))
+
+
+
+  (append es (list bg-entity))
+  )
 
 
 
@@ -998,64 +1024,12 @@
 
 
 (define (test-room h)
-  (define house-bg (overlay/align "left" "top"
-                                  (room->image h)
-                                  (rectangle (+ 32 (room-width h))
-                                             (+ 32 (room-height h))
-                                             'solid 'transparent)))
-  (define bg-entity
-    (sprite->entity (overlay/align "left" "top"
-                     house-bg
-                     (texture-with
-                      (square (+ 32 (max (room-width h)
-                                         (room-height h))) 'solid 'black)
-                      dark-grass-tile))
-                    #:name     "bg"
-                    #:position (posn 0 0)
-                    #:components (static)))
 
-
-  (define (hero-costume)
-    (define p (posn 100 100))
-    (sprite->entity (sheet->sprite (freeze
-                                    (scale ;0.079
-                                     0.05
-                                     ;Ummm no....
-                                     (bitmap "images/sprite-sheet.png")))
-                                   #:rows       4
-                                   #:columns    4
-                                   #:row-number 2
-                                   #:speed      5)
-                    #:name       "hero-appearance"
-                    #:position   p
-                    #:components
-                    (lock-to "hero" #:offset (posn 0 -10))
-                    #;(static)
-                    ))
-
-  (define (hero-collider)
-    (define p (posn 100 100))
+  (apply
+   start-game 
+   (cons
+    (basic-hero (posn 100 100))
       
-    (sprite->entity (square 5 "solid" "pink")
-                    #:name       "hero"
-                    #:position   p 
-                    #:components
-                    (physical-collider)
-                    ;(hidden)
-                    (speed 5)
-                    (direction 0)
-                    (key-movement 5)
-                    (rotation-style 'left-right)))
-
-
-  (map get-name
-       (game-entities
-        (apply
-         start-game 
-         (append
-          (list (hero-costume)
-                (hero-collider))
+    (room-list->entity-list h)
       
-          (room-list->entity-list h)
-      
-          (list bg-entity))))))
+    #;(list bg-entity))))
