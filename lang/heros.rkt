@@ -25,13 +25,13 @@
                    #:speed      5))
 
   #;(define (hero-costume)
-    (sprite->entity 
-                    #:name       "hero-appearance"
-                    #:position   p
-                    #:components
-                    (lock-to "hero" #:offset (posn 0 -10))
-                    #;(static)
-                    ))
+      (sprite->entity 
+       #:name       "hero-appearance"
+       #:position   p
+       #:components
+       (lock-to "hero" #:offset (posn 0 -10))
+       #;(static)
+       ))
 
   #;(sprite->entity (square 5 "solid" "pink")
                   #:name       "player"

@@ -57,8 +57,8 @@
 
 (module+ test
     #;(start-game little-room-game)
-    (test-room #;little-room
-               big-house
+    (test-room little-room
+               #;big-house
                #;(beside-room (nudge-down 1 door) r door)))
 
 
