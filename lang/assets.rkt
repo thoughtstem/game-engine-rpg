@@ -309,10 +309,44 @@
 
 
 
+;Other house set
+
+(define (stone-house (p (posn 0 0)) #:components (c #f) . custom-components )
+  (generic-entity (scale 0.75 (bitmap "images/stone-house.png"))
+                  p
+                  #:components (cons c custom-components))  )
+
+(define (wood-house (p (posn 0 0)) #:components (c #f) . custom-components )
+  (generic-entity (scale 0.75 (bitmap "images/wood-house.png"))
+                  p
+                  #:components (cons c custom-components))  )
+
+(define (chest (p (posn 0 0)) #:components (c #f) . custom-components )
+  (generic-entity (crop 0 0
+                        32 32
+                        (bitmap "images/chests.png"))
+                  p
+                  #:components (cons c custom-components)))
+
+(define (generic-entity i p #:components (custom-components '()))
+  (define  required-components
+    (list
+     (physical-collider)
+     (static)))
+  
+  (sprite->entity (scale 0.75 i)
+                  #:name  "thing"
+                  #:position p
+                  #:components (append
+                                required-components
+                                custom-components)  ))
 
 
-
-
+(define (builder p thing-to-build)
+  (chest p
+         #:components
+         (active-on-bg 0)
+         (producer-of thing-to-build)))
 
 
 

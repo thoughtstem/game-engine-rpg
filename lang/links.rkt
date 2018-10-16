@@ -82,7 +82,7 @@
          (game-entities g))))
   
   (define new-born
-    (map chipmunkify (flatten (enter g))))
+    (flatten (enter g)))
 
   (define es (map
               reset-link-follower
