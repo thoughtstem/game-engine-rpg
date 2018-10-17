@@ -334,7 +334,7 @@
      (physical-collider)
      (static)))
   
-  (sprite->entity (scale 0.75 i)
+  (sprite->entity i
                   #:name  "thing"
                   #:position p
                   #:components (append
