@@ -5,5 +5,7 @@
 
 (define scribblings '(("docs/game-engine-rpg.scrbl" ())))
 
-(define deps '("game-engine"))
+(define deps '(
+  "https://github.com/thoughtstem/game-engine.git"
+))
 
