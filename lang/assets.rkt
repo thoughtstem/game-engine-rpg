@@ -311,28 +311,32 @@
 
 ;Other house set
 
-(define (stone-house (p (posn 0 0)) #:components (c #f) . custom-components )
+(define (stone-house [p (posn 0 0)] #:tile [tile 0] #:components [c #f] . custom-components )
   (generic-entity (scale 0.75 (bitmap "images/stone-house.png"))
                   p
+                  #:tile tile
                   #:components (cons c custom-components))  )
 
-(define (wood-house (p (posn 0 0)) #:components (c #f) . custom-components )
+(define (wood-house [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
   (generic-entity (scale 0.75 (bitmap "images/wood-house.png"))
                   p
+                  #:tile tile
                   #:components (cons c custom-components))  )
 
-(define (chest (p (posn 0 0)) #:components (c #f) . custom-components )
+(define (chest [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
   (generic-entity (crop 0 0
                         32 32
                         (bitmap "images/chests.png"))
                   p
+                  #:tile tile
                   #:components (cons c custom-components)))
 
-(define (generic-entity i p #:components (custom-components '()))
+(define (generic-entity i p #:tile tile #:components (custom-components '()))
   (define  required-components
     (list
      (physical-collider)
-     (static)))
+     (static)
+     (active-on-bg tile)))
   
   (sprite->entity i
                   #:name  "thing"
