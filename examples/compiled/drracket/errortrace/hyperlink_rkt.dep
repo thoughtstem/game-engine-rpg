@@ -1,1 +1,0 @@
-("7.0" ("de8f03379a4df64a15623b884eebc7ff91a43fa9" . "f8e5ab3a7fbf0cad907cf6b5a0a4a88ffe85a225") (collects #"errortrace" #"errortrace-key.rkt") (collects #"game-engine" #"main.rkt") (collects #"game-engine-rpg" #"main.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (collects #"racket" #"runtime-path.rkt"))
