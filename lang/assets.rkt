@@ -311,52 +311,78 @@
 
 ;Other house set
 
-(define (stone-house [p (posn 0 0)] #:tile [tile 0] #:components [c #f] . custom-components )
+(define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
   (generic-entity (scale 0.75 (bitmap "images/stone-house.png"))
-                  p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components))  )
 
-(define (wood-house [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
+(define (wood-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (scale 0.75 (bitmap "images/wood-house.png"))
                   p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components))  )
 
-(define (brick-house [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
+(define (brick-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (bitmap "images/brick-house.png")
                   p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components))  )
 
-(define (round-tree [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
+(define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (bitmap "images/round-tree.png")
                   p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components))  )
 
-(define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
+(define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (bitmap "images/pine-tree.png")
                   p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components))  )
 
-(define (chest [p (posn 0 0)] #:tile [tile 0] #:components (c #f) . custom-components )
+(define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (crop 0 0
                         32 32
                         (bitmap "images/chests.png"))
                   p
                   #:tile tile
+                  #:hue hue
+                  #:size size
                   #:components (cons c custom-components)))
 
-(define (generic-entity i p #:tile tile #:components (custom-components '()))
+(define (generic-entity i p #:tile tile #:hue hue #:size size #:components (custom-components '()))
   (define  required-components
     (list
      (physical-collider)
      (static)
-     (active-on-bg tile)))
+     (active-on-bg tile)
+     (hue-val hue)
+     (size-val size)
+     (on-key "[" #:rule carried? (do-many (scale-sprite 0.75)
+                                          (multiply-size-val-by 0.75)))
+     (on-key "]" #:rule carried? (do-many (scale-sprite 1.25)
+                                          (multiply-size-val-by 1.25)))
+     (on-key "p" #:rule carried? (do-many (change-color-by 20)
+                                          (change-hue-val-by 20)))
+     ))
   
-  (sprite->entity i
+  (sprite->entity (if (= size 1)
+                      (if (= hue 0)
+                      i
+                      (change-img-hue hue i))
+                      (scale size (if (= hue 0)
+                                      i
+                                      (change-img-hue hue i))))
                   #:name  "thing"
                   #:position p
                   #:components (append
