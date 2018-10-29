@@ -313,6 +313,7 @@
 
 (define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
   (generic-entity (scale 0.75 (bitmap "images/stone-house.png"))
+                  p
                   #:tile tile
                   #:hue hue
                   #:size size
