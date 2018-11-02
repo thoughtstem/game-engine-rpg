@@ -361,6 +361,88 @@
                   #:size size
                   #:components (cons c custom-components)))
 
+;additional entities from LPC
+
+(define (cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/cat-sprite.png") 
+                                 #:rows       1
+                                 #:columns    3
+                                 #:row-number 1
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (black-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/black-cat-sprite.png") 
+                                 #:rows       1
+                                 #:columns    3
+                                 #:row-number 1
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (white-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/white-cat-sprite.png") 
+                                 #:rows       1
+                                 #:columns    3
+                                 #:row-number 1
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (bat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/bat-sprite.png") 
+                                 #:rows       4
+                                 #:columns    3
+                                 #:row-number 1
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (slime [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/slime-sprite.png") 
+                                 #:rows       4
+                                 #:columns    3
+                                 #:row-number 1
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (snake [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity (sheet->sprite (bitmap "images/snake-sprite.png") 
+                                 #:rows       4
+                                 #:columns    3
+                                 #:row-number 4
+                                 #:speed      3)
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+  (generic-entity apple-barrel-tile
+                  p
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
 (define (generic-entity i p #:tile tile #:hue hue #:size size #:components (custom-components '()))
   (define  required-components
     (list
