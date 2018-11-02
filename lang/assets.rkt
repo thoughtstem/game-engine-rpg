@@ -365,7 +365,7 @@
 
 (define (cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
   (generic-entity (sheet->sprite (bitmap "images/cat-sprite.png") 
-                                 #:rows       1
+                                 #:rows       4
                                  #:columns    3
                                  #:row-number 1
                                  #:speed      3)
@@ -377,7 +377,7 @@
 
 (define (black-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
   (generic-entity (sheet->sprite (bitmap "images/black-cat-sprite.png") 
-                                 #:rows       1
+                                 #:rows       4
                                  #:columns    3
                                  #:row-number 1
                                  #:speed      3)
@@ -389,7 +389,7 @@
 
 (define (white-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
   (generic-entity (sheet->sprite (bitmap "images/white-cat-sprite.png") 
-                                 #:rows       1
+                                 #:rows       4
                                  #:columns    3
                                  #:row-number 1
                                  #:speed      3)
