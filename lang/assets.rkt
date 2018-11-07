@@ -312,7 +312,7 @@
 ;Other house set
 
 (define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
-  (generic-entity (scale 0.75 (bitmap "images/stone-house.png"))
+  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/stone-house.png")))
                   p
                   #:tile tile
                   #:hue hue
@@ -320,7 +320,7 @@
                   #:components (cons c custom-components))  )
 
 (define (wood-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (scale 0.75 (bitmap "images/wood-house.png"))
+  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/wood-house.png")))
                   p
                   #:tile tile
                   #:hue hue
@@ -328,7 +328,7 @@
                   #:components (cons c custom-components))  )
 
 (define (brick-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (bitmap "images/brick-house.png")
+  (generic-entity (simple-sheet->sprite (bitmap "images/brick-house.png"))
                   p
                   #:tile tile
                   #:hue hue
@@ -336,7 +336,7 @@
                   #:components (cons c custom-components))  )
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (bitmap "images/round-tree.png")
+  (generic-entity (simple-sheet->sprite (bitmap "images/round-tree.png"))
                   p
                   #:tile tile
                   #:hue hue
@@ -344,7 +344,7 @@
                   #:components (cons c custom-components))  )
 
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (bitmap "images/pine-tree.png")
+  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree.png"))
                   p
                   #:tile tile
                   #:hue hue
@@ -352,9 +352,10 @@
                   #:components (cons c custom-components))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (crop 0 0
+  (generic-entity (simple-sheet->sprite
+                   (crop 0 0
                         32 32
-                        (bitmap "images/chests.png"))
+                        (bitmap "images/chests.png")))
                   p
                   #:tile tile
                   #:hue hue
@@ -365,7 +366,7 @@
 
 (define (cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
   (generic-entity (sheet->sprite (bitmap "images/cat-sprite.png") 
-                                 #:rows       4
+                                 #:rows       1
                                  #:columns    3
                                  #:row-number 1
                                  #:speed      3)
@@ -436,14 +437,24 @@
                   #:components (cons c custom-components)))
 
 (define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity apple-barrel-tile
+  (generic-entity (simple-sheet->sprite apple-barrel-tile)
                   p
                   #:tile tile
                   #:hue hue
                   #:size size
                   #:components (cons c custom-components)))
 
-(define (generic-entity i p #:tile tile #:hue hue #:size size #:components (custom-components '()))
+(define (simple-sheet->sprite i)
+  (sheet->sprite i
+                 #:rows       1
+                 #:columns    1
+                 #:row-number 1
+                 #:speed      0))
+
+(define/contract (generic-entity i p #:tile tile #:hue hue #:size size #:components (custom-components '()))
+  (->* (animated-sprite? posn? #:tile number? #:hue number? #:size number?)
+       (#:components list?)
+       entity?)
   (define  required-components
     (list
      (physical-collider)
@@ -459,13 +470,8 @@
                                           (change-hue-val-by 20)))
      ))
   
-  (sprite->entity (if (= size 1)
-                      (if (= hue 0)
-                      i
-                      (change-img-hue hue i))
-                      (scale size (if (= hue 0)
-                                      i
-                                      (change-img-hue hue i))))
+  (sprite->entity (sprite-map (curry scale size)
+                              (sprite-map (curry change-img-hue hue) i))
                   #:name  "thing"
                   #:position p
                   #:components (append
