@@ -368,6 +368,23 @@
                   #:size size
                   #:components (cons c custom-components)))
 
+(define (crafting-chest [p (posn 0 0)] #:icon [icon empty-image] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (define chest-image (crop 0 0
+                        32 32
+                        (bitmap "images/chests.png")))
+  (generic-entity (simple-sheet->sprite
+                   (overlay
+                    (if (= (image-width icon) 0)
+                        icon
+                        (scale-to-fit icon (image-width chest-image)))
+                    chest-image))
+                  p
+                  #:name "chest"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
 ;additional entities from LPC
 
 (define (cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
@@ -448,7 +465,7 @@
                   #:size size
                   #:components (cons c custom-components)))
 
-(define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
+(define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components)
   (generic-entity (simple-sheet->sprite apple-barrel-tile)
                   p
                   #:name "apples"
@@ -497,6 +514,16 @@
          #:components
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
+
+(define (crafter p thing-to-build #:build-time [build-time 0] #:show-info? [show-info? #f] #:rule [rule (λ (g e) #t)])
+  (define as (if (procedure? thing-to-build)
+                 (get-component (thing-to-build) animated-sprite?)
+                 (get-component thing-to-build animated-sprite?)))
+  (crafting-chest p
+                  #:icon    (render as)
+                  #:components
+                  (active-on-bg 0)
+                  (producer-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule)))
 
 
 
