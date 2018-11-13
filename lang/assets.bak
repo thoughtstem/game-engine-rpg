@@ -376,7 +376,7 @@
                    (overlay
                     (if (= (image-width icon) 0)
                         icon
-                        (crafting-chest-icon icon chest-image))
+                        (scale-to-fit icon (image-width chest-image)))
                     chest-image))
                   p
                   #:name "chest"
@@ -384,28 +384,6 @@
                   #:hue hue
                   #:size size
                   #:components (cons c custom-components)))
-
-(define (crafting-chest-icon avatar chest)
-  (define avatar-w (image-width avatar))
-  (define avatar-h (image-height avatar))
-  
-  (define squared-icon
-    (scale .5
-           (scale-to-fit
-            (overlay
-             avatar
-             (freeze (if (> avatar-w avatar-h)
-                 (rectangle avatar-w avatar-w "solid" 'transparent)
-                 (rectangle avatar-h avatar-h "solid" 'transparent))))
-            (image-width chest))))
-
-  (define icon-w (image-width squared-icon))
-  (define icon-h (image-height squared-icon))
-  (overlay squared-icon
-           (freeze (overlay (rectangle (+ icon-w 4) (+ icon-h 4) "outline" (pen "white" 2 "solid" "butt" "bevel"))
-                            (rectangle (+ icon-w 8) (+ icon-h 8)  "solid"  (make-color 20 20 20 150)))))
-
-  )
 
 ;additional entities from LPC
 
