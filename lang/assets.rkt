@@ -368,16 +368,23 @@
                   #:size size
                   #:components (cons c custom-components)))
 
-(define (crafting-chest [p (posn 0 0)] #:icon [icon empty-image] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+(define (crafting-chest [p (posn 0 0)]
+                        #:icon   [icon empty-image]
+                        #:sprite [sprite #f]
+                        #:tile   [tile 0]
+                        #:hue    [hue 0]
+                        #:size   [size 1]
+                        #:components (c #f) . custom-components )
   (define chest-image (crop 0 0
                         32 32
                         (bitmap "images/chests.png")))
-  (generic-entity (simple-sheet->sprite
-                   (overlay
-                    (if (= (image-width icon) 0)
-                        icon
-                        (crafting-chest-icon icon chest-image))
-                    chest-image))
+  (generic-entity (if sprite
+                      sprite
+                      (simple-sheet->sprite
+                       (overlay (if (= (image-width icon) 0)
+                                    icon
+                                    (crafting-chest-icon icon chest-image))
+                                chest-image)))
                   p
                   #:name "chest"
                   #:tile tile
@@ -402,8 +409,8 @@
   (define icon-w (image-width squared-icon))
   (define icon-h (image-height squared-icon))
   (overlay squared-icon
-           (freeze (overlay (rectangle (+ icon-w 4) (+ icon-h 4) "outline" (pen "white" 2 "solid" "butt" "bevel"))
-                            (rectangle (+ icon-w 8) (+ icon-h 8)  "solid"  (make-color 20 20 20 150)))))
+           (freeze (overlay (freeze (rectangle (+ icon-w 4) (+ icon-h 4) "outline" (pen "white" 1 "solid" "butt" "bevel")))
+                            (rectangle (+ icon-w 6) (+ icon-h 6)  "solid"  (make-color 20 20 20 150)))))
 
   )
 
@@ -537,15 +544,98 @@
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
 
-(define (crafter p thing-to-build #:build-time [build-time 0] #:show-info? [show-info? #f] #:rule [rule (λ (g e) #t)])
+(define (crafting-list dialog-list pos #:sound [rsound #f])
+  (define selection 0)
+  (define font-size 18)
+  (define dialog-list-sprite (draw-dialog-list dialog-list font-size selection))
+  (sprite->entity dialog-list-sprite
+                  #:name       "crafting list"
+                  #:position   pos
+                  #:components (static)
+                               (hidden)
+                               (on-start (do-many (go-to-pos 'center)
+                                                  show
+                                                  (spawn (crafting-selection dialog-list
+                                                                             (image-width dialog-list-sprite)
+                                                                             font-size
+                                                                             selection
+                                                                             rsound) #:relative? #f)))
+                               (on-key 'enter die)
+                               ))
+
+(define (crafting-selection dialog-list max-width font-size selection rsound)
+  (define select-box
+    (overlay (rectangle (- max-width 14)
+                        (+ 4 (image-height (text "Blank" font-size "transparent")))
+                        "outline"
+                        (pen "white" 2 "solid" "butt" "bevel"))
+             (rectangle (- max-width 10)
+                        (+ 8 (image-height (text "Blank" font-size "transparent")))
+                        "outline"
+                        (pen "black" 4 "solid" "butt" "bevel"))))
+  (define box-height (image-height select-box))
+  (define offset (posn 0 (get-selection-offset (length dialog-list) box-height selection)))
+  (sprite->entity select-box
+                  #:name       "crafting selection"
+                  #:position   (posn 0 0) ;(posn (/ WIDTH 2) (+ (/ HEIGHT 2) (posn-y offset)))
+                  #:components (static)
+                               (hidden)
+                               (counter selection)
+                               (on-start show)
+                               (lock-to "crafting list" #:offset offset)
+                               ;(on-key 'space die)
+                               (on-key 'enter die)
+                               (on-key 'up   (if rsound
+                                                 (do-many (previous-crafting-option dialog-list box-height)
+                                                          (play-sound-from "player" rsound))
+                                                 (previous-dialog-option dialog-list box-height)))
+                               (on-key 'down (if rsound
+                                                 (do-many (next-crafting-option dialog-list box-height)
+                                                          (play-sound-from "player" rsound))
+                                                 (next-dialog-option dialog-list box-height)))))
+
+(define (next-crafting-option dialog-list box-height)
+  (lambda (g e)
+    (define new-index (modulo (add1 (get-counter e)) (length dialog-list)))
+    (define offset (posn 0 (get-selection-offset (length dialog-list) box-height new-index)))
+    (update-entity (update-entity e lock-to? (lock-to "crafting list" #:offset offset))
+                   counter?
+                   (counter new-index))))
+
+(define (previous-crafting-option dialog-list box-height)
+  (lambda (g e)
+    (define new-index (modulo (sub1 (get-counter e)) (length dialog-list)))
+    (define offset (posn 0 (get-selection-offset (length dialog-list) box-height new-index)))
+    (update-entity (update-entity e lock-to? (lock-to "crafting list" #:offset offset))
+                   counter?
+                   (counter new-index))))
+
+(define (get-crafting-selection)
+  (lambda (g e)
+    (define selection (get-counter (get-entity "crafting selection" g)))
+    (displayln (~a "Crafting Selection: " selection))
+    (update-entity e counter? (counter selection))))
+
+(define (recipe #:product product #:selection [selection 0] #:build-time [build-time 0] #:rule [rule (λ (g e) #t)])
+  (crafter-of product #:build-time build-time #:show-info? #f #:rule rule #:selection selection))
+
+(define (crafter p
+                 thing-to-build
+                 #:sprite     [sprite #f]
+                 #:build-time [build-time 0]
+                 #:show-info? [show-info? #f]
+                 #:rule       [rule (λ (g e) #t)]
+                 #:components [c #f] . custom-components)
   (define as (if (procedure? thing-to-build)
                  (get-component (thing-to-build) animated-sprite?)
                  (get-component thing-to-build animated-sprite?)))
   (crafting-chest p
-                  #:icon    (render as)
-                  #:components
-                  (active-on-bg 0)
-                  (producer-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule)))
+                  #:icon       (render as)
+                  #:sprite     sprite
+                  #:components (active-on-bg 0)
+                               (counter 0)
+                               (recipe #:product thing-to-build #:build-time build-time #:rule rule)
+                               (cons c custom-components)))
 
 
 
