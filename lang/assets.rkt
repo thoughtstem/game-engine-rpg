@@ -566,10 +566,11 @@
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
 
-(define (crafting-list dialog-list pos #:sound [rsound #f])
+;---- Added icon-list parameter
+(define (crafting-list dialog-list icon-list pos #:sound [rsound #f])
   (define selection 0)
   (define font-size 18)
-  (define dialog-list-sprite (draw-dialog-list dialog-list font-size selection))
+  (define dialog-list-sprite (draw-crafting-list dialog-list icon-list font-size selection))
   (sprite->entity dialog-list-sprite
                   #:name       "crafting list"
                   #:position   pos
@@ -584,6 +585,7 @@
                                                                              rsound) #:relative? #f)))
                                (on-key 'enter die)
                                ))
+; ----
 
 (define (crafting-selection dialog-list max-width font-size selection rsound)
   (define select-box
@@ -638,8 +640,8 @@
     (displayln (~a "Crafting Selection: " selection))
     (update-entity e counter? (counter selection))))
 
-(define (recipe #:product product #:selection [selection 0] #:build-time [build-time 0] #:rule [rule (λ (g e) #t)])
-  (crafter-of product #:build-time build-time #:show-info? #f #:rule rule #:selection selection))
+#;(define (recipe #:product product #:selection [selection 0] #:build-time [build-time 0] #:rule [rule (λ (g e) #t)])
+  )
 
 (define (crafter p
                  thing-to-build
@@ -656,7 +658,8 @@
                   #:sprite     sprite
                   #:components (active-on-bg 0)
                                (counter 0)
-                               (recipe #:product thing-to-build #:build-time build-time #:rule rule)
+                               (crafter-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule #:selection 0)
+                               ;(recipe #:product thing-to-build #:build-time build-time #:rule rule)
                                (cons c custom-components)))
 
 
