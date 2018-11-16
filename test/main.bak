@@ -1,0 +1,9 @@
+#lang racket
+
+(require rackunit)
+
+(define (two)
+  (+ 1 1 ))
+
+(check-equal? (two) 2
+              "The (two) function should always return true")
