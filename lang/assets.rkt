@@ -511,8 +511,8 @@
                  #:speed      0))
 
 (define/contract (generic-entity i p #:name [name "thing"] #:tile tile #:hue hue #:size size #:components (custom-components '()))
-  (->* (animated-sprite? posn? #:name string? #:tile number? #:hue number? #:size number?)
-       (#:components list?)
+  (->* (animated-sprite? posn?  #:tile number? #:hue number? #:size number?)
+       (#:name string? #:components list?)
        entity?)
   (define  required-components
     (list
@@ -536,6 +536,28 @@
                   #:components (append
                                 required-components
                                 custom-components)  ))
+
+(define component? any/c)
+
+(define/contract (crafting-entity #:sprite sprite #:position [p (posn 0 0)] #:name [name "thing"] #:tile [tile 0] #:components [c #f] . custom-components)
+  (->* (#:sprite animated-sprite? )
+       (#:position posn? #:name string? #:tile number? #:components component?)
+       #:rest (listof component?)
+       entity?)
+  (define  required-components
+    (list
+     (physical-collider)
+     (static)
+     (active-on-bg tile)
+     ))
+  
+  (sprite->entity sprite
+                  #:name  name
+                  #:position p
+                  #:components (append
+                                required-components
+                                (list c)
+                                custom-components)))
 
 
 (define (builder p thing-to-build #:build-time [build-time 0])
