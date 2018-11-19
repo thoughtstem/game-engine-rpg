@@ -510,6 +510,18 @@
                  #:row-number 1
                  #:speed      0))
 
+(define (customizer-system)
+  (hue-val 0)
+  (size-val 1)
+  (on-key "[" #:rule carried? (do-many (scale-sprite 0.75)
+                                       (multiply-size-val-by 0.75)))
+  (on-key "]" #:rule carried? (do-many (scale-sprite 1.25)
+                                       (multiply-size-val-by 1.25)))
+  (on-key "p" #:rule carried? (do-many (change-color-by 20)
+                                       (change-hue-val-by 20)))
+  (on-key 'backspace #:rule carried? die)
+  )
+
 (define/contract (generic-entity i p #:name [name "thing"] #:tile tile #:hue hue #:size size #:components (custom-components '()))
   (->* (animated-sprite? posn?  #:tile number? #:hue number? #:size number?)
        (#:name string? #:components list?)
@@ -527,6 +539,7 @@
                                           (multiply-size-val-by 1.25)))
      (on-key "p" #:rule carried? (do-many (change-color-by 20)
                                           (change-hue-val-by 20)))
+     (on-key 'backspace #:rule carried? die)
      ))
   
   (sprite->entity (sprite-map (curry scale size)
@@ -576,6 +589,7 @@
                   #:position   pos
                   #:components (static)
                                (hidden)
+                               (layer "ui")
                                (on-start (do-many (go-to-pos 'center)
                                                   show
                                                   (spawn (crafting-selection dialog-list
@@ -604,6 +618,7 @@
                   #:position   (posn 0 0) ;(posn (/ WIDTH 2) (+ (/ HEIGHT 2) (posn-y offset)))
                   #:components (static)
                                (hidden)
+                               (layer "ui")
                                (counter selection)
                                (on-start show)
                                (lock-to "crafting list" #:offset offset)
@@ -640,9 +655,6 @@
     (displayln (~a "Crafting Selection: " selection))
     (update-entity e counter? (counter selection))))
 
-#;(define (recipe #:product product #:selection [selection 0] #:build-time [build-time 0] #:rule [rule (λ (g e) #t)])
-  )
-
 (define (crafter p
                  thing-to-build
                  #:sprite     [sprite #f]
@@ -659,7 +671,6 @@
                   #:components (active-on-bg 0)
                                (counter 0)
                                (crafter-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule #:selection 0)
-                               ;(recipe #:product thing-to-build #:build-time build-time #:rule rule)
                                (cons c custom-components)))
 
 
