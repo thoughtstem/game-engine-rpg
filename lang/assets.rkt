@@ -673,6 +673,68 @@
                                (crafter-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule #:selection 0)
                                (cons c custom-components)))
 
+(define (crafting-menu #:open-key [open-key 'space]
+                       #:open-sound [open-sound #f]
+                       #:select-sound [select-sound #f]
+                       #:recipes r
+                                 . recipes)
+
+  (define all-recipes (append (list r) recipes))
+
+  (define (ingredients-list->rule i-list)
+    (define rules-list (map in-backpack? i-list))
+    (if (empty? i-list)
+        (λ (g e) #t)
+        (apply and/r  rules-list)))
+
+  (define (recipe-list->icon l)
+    (define recipe-item (first l))
+    (define as (if (procedure? recipe-item)
+                   (get-component (recipe-item) animated-sprite?)
+                   (get-component recipe-item animated-sprite?)))
+    (render as))
+
+  (define (recipe-list->name l)
+    (define recipe-item (first l))
+    (define recipe-entity (if (procedure? recipe-item)
+                             (recipe-item)
+                             recipe-item))
+    (get-name recipe-entity))
+  
+  (define crafting-icons
+    (map recipe-list->icon all-recipes))
+
+  (define crafting-options
+    (map recipe-list->name all-recipes))
+       
+  (list
+   (on-key open-key #:rule (and/r near-player?
+                                  all-dialog-closed?)
+          (do-many (set-counter 0)
+                   (spawn (crafting-list crafting-options
+                                               crafting-icons
+                                               (posn 0 0)
+                                               ;(posn (/ WIDTH 2) (/ HEIGHT 2))
+                                               #:sound select-sound))
+                   (play-sound open-sound)))
+
+   
+   (for/list ([i (range 0 (length all-recipes))]
+              [j all-recipes])
+     (crafter-of (first j)
+                 #:build-time (second j)
+                 #:show-info? #f
+                 #:rule (and/r (ingredients-list->rule (third j))
+                               (fourth j))
+                 #:selection i)
+             )))
+
+(define (recipe #:product product #:build-time [build-time 0] #:ingredients [i-list '()] #:rule [rule (λ (g e) #t)])
+  (list product
+        build-time
+        i-list
+        rule))
+
 
 
 
