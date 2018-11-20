@@ -25,7 +25,21 @@
 
 (define broken-asset empty-image)
 
-(define assets-list (list bat apples wood-house brick-house stone-house broken-asset))
+(define assets-list (list stone-house
+                          wood-house
+                          brick-house
+                          round-tree
+                          pine-tree
+                          chest
+                          crafting-chest
+                          cat
+                          black-cat
+                          white-cat
+                          bat
+                          slime
+                          snake
+                          apples
+                          ))
 
 (map (λ (asset) (check-equal? (entity? (ensure-entity asset)) #t (~a "(ensure-entity " asset ") should have returned an entity)")))
      assets-list)

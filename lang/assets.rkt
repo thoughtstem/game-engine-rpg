@@ -314,7 +314,7 @@
 (define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
   (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/stone-house.png")))
                   p
-                  #:name "stone-house"
+                  #:name "Stone House"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -323,7 +323,7 @@
 (define (wood-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/wood-house.png")))
                   p
-                  #:name "wood-house"
+                  #:name "Wood House"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -332,7 +332,7 @@
 (define (brick-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite (bitmap "images/brick-house.png"))
                   p
-                  #:name "brick-house"
+                  #:name "Brick House"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -341,7 +341,7 @@
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite (bitmap "images/round-tree.png"))
                   p
-                  #:name "round-tree"
+                  #:name "Round Tree"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -350,7 +350,7 @@
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree.png"))
                   p
-                  #:name "pine-tree"
+                  #:name "Pine Tree"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -362,7 +362,7 @@
                         32 32
                         (bitmap "images/chests.png")))
                   p
-                  #:name "chest"
+                  #:name "Chest"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -386,7 +386,7 @@
                                     (crafting-chest-icon icon chest-image))
                                 chest-image)))
                   p
-                  #:name "chest"
+                  #:name "Crafting Chest"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -423,7 +423,7 @@
                                  #:row-number 1
                                  #:speed      3)
                   p
-                  #:name "cat"
+                  #:name "Cat"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -436,7 +436,7 @@
                                  #:row-number 1
                                  #:speed      3)
                   p
-                  #:name "black-cat"
+                  #:name "Black Cat"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -449,7 +449,7 @@
                                  #:row-number 1
                                  #:speed      3)
                   p
-                  #:name "white-cat"
+                  #:name "White Cat"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -462,7 +462,7 @@
                                  #:row-number 1
                                  #:speed      3)
                   p
-                  #:name "bat"
+                  #:name "Bat"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -475,7 +475,7 @@
                                  #:row-number 1
                                  #:speed      3)
                   p
-                  #:name "slime"
+                  #:name "Slime"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -488,7 +488,7 @@
                                  #:row-number 4
                                  #:speed      3)
                   p
-                  #:name "snake"
+                  #:name "Snake"
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -497,7 +497,7 @@
 (define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components)
   (generic-entity (simple-sheet->sprite apple-barrel-tile)
                   p
-                  #:name "apples"
+                  #:name "Apples"
                   #:tile tile
                   #:hue hue
                   #:size size
