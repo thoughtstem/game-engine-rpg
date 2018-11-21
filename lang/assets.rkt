@@ -311,6 +311,24 @@
 
 ;Other house set
 
+(define (player [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
+  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/player.png")))
+                  p
+                  #:name "Player"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components))  )
+
+(define (npc [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
+  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/npc.png")))
+                  p
+                  #:name "NPC"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components))  )
+
 (define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
   (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/stone-house.png")))
                   p
