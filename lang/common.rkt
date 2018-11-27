@@ -13,14 +13,19 @@
          room-list->entity-list
          test-room
          (all-from-out "./assets.rkt")
+         (all-from-out "./health-bar.rkt")
+         (all-from-out "./player-dialog.rkt")
          (all-from-out "./heros.rkt")
-         (all-from-out "./links.rkt"))
+         (all-from-out "./links.rkt")
+         )
 
 (require 2htdp/image)
 (require (prefix-in h: lang/posn))
 (require game-engine)
 (require "./heros.rkt")
 (require "./assets.rkt")
+(require "./health-bar.rkt")
+(require "./player-dialog.rkt")
 (require "./links.rkt")
 
 (module+ test
