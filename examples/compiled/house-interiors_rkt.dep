@@ -1,0 +1,1 @@
+("7.0" ("9b621576c4dc488563aeaf0add57af1a6a61b296" . "099ed9a79db1ddce91f2fe4fa6e79202f0e56ea8") (collects #"2htdp" #"image.rkt") (collects #"game-engine" #"main.rkt") (collects #"game-engine-rpg" #"main.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

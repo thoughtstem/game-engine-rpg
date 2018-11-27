@@ -1026,10 +1026,10 @@
 (define (test-room h)
 
   (apply
-   start-game 
+   start-game
+   #;(room-list->entity-list h)
    (cons
     (basic-hero (posn 100 100))
       
     (room-list->entity-list h)
-      
-    #;(list bg-entity))))
+    )))

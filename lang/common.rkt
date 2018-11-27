@@ -562,7 +562,6 @@
                   ;(disabled)
                   (storage "original-line" (list l))
                   (static)
-                  (bake)
                   (physical-collider)
                   #;(disabled)
                   #;(hidden)
