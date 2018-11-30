@@ -9,6 +9,12 @@
 ;  Copyright stuff.
 ;  Educational use is fine...
 
+(define FOREST-BG
+  (bitmap "images/lpc_forest.png"))
+
+(define SNOW-BG
+  (bitmap "images/lpc_snow.png"))
+
 (define outdoor-set
   (bitmap "images/outdoor-set-1.png"))
 
@@ -357,22 +363,44 @@
                   #:components (cons c custom-components))  )
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/round-tree.png"))
+  (define tree-top-entity
+    (sprite->entity  (sprite-map (curry scale size)
+                                 (sprite-map (curry change-img-hue hue) (new-sprite (bitmap "images/round-tree-top.png"))))
+                    #:name       "Round Tree Top"
+                    #:position   (posn 0 -56)
+                    #:components (layer "tops")
+                                 (active-on-bg tile)
+                                 (hue-val hue)
+                                 (size-val size)))
+  (generic-entity (simple-sheet->sprite (bitmap "images/round-tree-trunk.png"))
                   p
-                  #:name "Round Tree"
+                  #:name "Round Tree Trunk"
                   #:tile tile
                   #:hue hue
                   #:size size
-                  #:components (cons c custom-components))  )
+                  #:components (append
+                                (list (on-start (spawn tree-top-entity)))
+                                (cons c custom-components)))  )
 
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree.png"))
+  (define tree-top-entity
+    (sprite->entity  (sprite-map (curry scale size)
+                                 (sprite-map (curry change-img-hue hue) (new-sprite (bitmap "images/pine-tree-top.png"))))
+                    #:name       "Pine Tree Top"
+                    #:position   (posn 0 -50)
+                    #:components (layer "tops")
+                                 (active-on-bg tile)
+                                 (hue-val hue)
+                                 (size-val size)))
+  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree-trunk.png"))
                   p
-                  #:name "Pine Tree"
+                  #:name "Pine Tree Trunk"
                   #:tile tile
                   #:hue hue
                   #:size size
-                  #:components (cons c custom-components))  )
+                  #:components (append
+                                (list (on-start (spawn tree-top-entity)))
+                                (cons c custom-components)))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite
@@ -697,7 +725,7 @@
                        #:recipes r
                                  . recipes)
 
-  (define all-recipes (append (list r) recipes))
+  (define all-recipes (apply append (append (list r) recipes)))
 
   (define (ingredients-list->rule i-list)
     (define rules-list (map in-backpack? i-list))
