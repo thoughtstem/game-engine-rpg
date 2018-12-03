@@ -17,6 +17,7 @@
          (all-from-out "./player-dialog.rkt")
          (all-from-out "./heros.rkt")
          (all-from-out "./links.rkt")
+         (all-from-out "./crafting.rkt")
          )
 
 (require 2htdp/image)
@@ -27,6 +28,7 @@
 (require "./health-bar.rkt")
 (require "./player-dialog.rkt")
 (require "./links.rkt")
+(require "./crafting.rkt")
 
 (module+ test
   (require rackunit))
