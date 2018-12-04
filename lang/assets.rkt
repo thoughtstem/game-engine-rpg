@@ -25,7 +25,18 @@
 (define barrel-set
   (bitmap "images/barrels.png"))
 
-
+(define (basic-background #:bg-img     [bg FOREST-BG]
+                          #:rows       [rows 3]
+                          #:columns    [cols 3]
+                          #:start-tile [t 0])
+  (define backdrop
+    (bg->backdrop bg #:rows rows #:columns cols #:start-tile t))
+  (sprite->entity (render-tile backdrop)
+                  #:name "bg"
+                  #:position (posn 0 0)
+                  #:components backdrop
+                               #;(precompiler
+                                (backdrop-tiles (first backdrop)))))
 
 (define wall-tile
   (freeze
@@ -504,6 +515,22 @@
                   #:hue hue
                   #:size size
                   #:components (cons c custom-components)))
+
+(define (coin-entity)
+  (sprite->entity (sheet->sprite (bitmap "images/coin.png") 
+                                 #:columns  8
+                                 #:delay    2)
+                  #:position   (posn 0 0)
+                  #:name       "Coin"
+                  #:components (active-on-bg 0)
+                               (hidden)
+                               (physical-collider)
+                               (on-start (do-many (active-on-random)
+                                                  (respawn 'anywhere)
+                                                  show))
+                               (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
+                                                                               (active-on-random)))
+                               ))
 
 (define (simple-sheet->sprite i)
   (sheet->sprite i
