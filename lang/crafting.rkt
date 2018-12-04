@@ -4,7 +4,11 @@
          recipe->system
          crafting-entity
          crafting-chest
-         crafting-menu)
+         crafting-menu
+         carrot-entity
+         carrot-stew-entity
+         cauldron-sprite
+         basic-crafter)
  
 (require 2htdp/image
          game-engine
@@ -257,6 +261,51 @@
                e2)))
   (observe-change (crafting? product-name) remove-items))
 
+
+(define (consumable) (on-key 'space #:rule (near? "player") die))
+
+; ==== CRAFTER SPRITES ====
+(define cauldron-sprite
+  (sheet->sprite (scale 0.75 (bitmap "images/cauldron.png"))
+                 #:columns 4
+                 #:delay 2))
+
+; ==== CRAFTER ENTITIES ====
+(define (basic-crafter [p (posn 100 100)]
+                       #:tile       [t 0]
+                       #:sprite     [sprite cauldron-sprite]
+                       #:components [c #f] . custom-components)
+  (crafting-chest p
+                  #:sprite sprite
+                  #:components (active-on-bg t)
+                               (counter 0)
+                               (cons c custom-components)))
+
+; === RESPAWNABLE CRAFTING ASSETS ===
+; These assets respawn and relocate when collected with spacebar
+(define (carrot-entity)
+  (sprite->entity (sheet->sprite (bitmap "images/carrot.png")
+                                 #:columns  1
+                                 #:delay    2)
+                  #:position   (posn 0 0)
+                  #:name       "Carrot"
+                  #:components (active-on-bg 0)
+                               (hidden)
+                               (storable)
+                               (physical-collider)
+                               (on-start (do-many (active-on-random)
+                                                  (respawn 'anywhere)
+                                                  show))
+                               (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
+                                                                               (active-on-random)))
+                               ))
+
+; === CRAFTING PRODUCTS ===
+(define (carrot-stew-entity)
+  (crafting-entity #:sprite     (new-sprite (bitmap "images/carrot-stew.png"))
+                   #:name       "Carrot Stew"
+                   #:components (consumable)
+                                (storable)))
 
 ; === FLATTEN TEST ====
 
