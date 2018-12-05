@@ -133,11 +133,11 @@
                                (on-key 'up   (if rsound
                                                  (do-many (previous-crafting-option dialog-list box-height)
                                                           (play-sound-from "player" rsound))
-                                                 (previous-dialog-option dialog-list box-height)))
+                                                 (previous-crafting-option dialog-list box-height)))
                                (on-key 'down (if rsound
                                                  (do-many (next-crafting-option dialog-list box-height)
                                                           (play-sound-from "player" rsound))
-                                                 (next-dialog-option dialog-list box-height)))))
+                                                 (next-crafting-option dialog-list box-height)))))
 
 (define (next-crafting-option dialog-list box-height)
   (lambda (g e)
@@ -216,16 +216,28 @@
 
   (define crafting-options
     (map recipe->name all-recipes))
-       
+
+  (define crafting-list-entity
+    (crafting-list crafting-options
+                   crafting-icons
+                   (posn 0 0)
+                   ;(posn (/ WIDTH 2) (/ HEIGHT 2))
+                   #:sound select-sound))
+
+  (define crafting-selection-entity
+    (crafting-selection crafting-options
+                        (image-width (draw-crafting-list crafting-options crafting-icons 18 0))
+                        18
+                        0
+                        select-sound))
+  
   (list
+   (precompiler crafting-list-entity
+                crafting-selection-entity)
    (on-key open-key #:rule (and/r near-player?
                                   all-dialog-closed?)
           (do-many (set-counter 0)
-                   (spawn (crafting-list crafting-options
-                                         crafting-icons
-                                         (posn 0 0)
-                                         ;(posn (/ WIDTH 2) (/ HEIGHT 2))
-                                         #:sound select-sound))
+                   (spawn crafting-list-entity #:relative? #f)
                    (play-sound open-sound)))
 
    
@@ -335,7 +347,7 @@
                                      (list marshmallows-recipe))))
 
   
-  (define crafting-menu? (listof (or/c on-key? observe-change?)))
+  (define crafting-menu? (listof (or/c on-key? observe-change? precompiler?)))
   (check-equal? (crafting-menu? test-menu) #t)
   (check-equal? (crafting-menu? test-menu2) #t)
   )

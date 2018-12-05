@@ -10,13 +10,24 @@
                             #:talk-key     [talk-key 'space]
                             #:select-sound [select-sound #f]
                             #:open-sound   [open-sound #f])
-  (on-key talk-key #:rule (ready-to-speak-and-near? name)
-          (do-many (set-counter 0)
-                   (spawn (dialog-list list-of-dialog
-                                       (posn 0 0)
-                                       #:sound select-sound)
-                          #:relative? #f)
-                   (play-sound open-sound))))
+  (define dialog-list-entity
+    (dialog-list list-of-dialog
+                   (posn 0 0)
+                   #:sound select-sound))
+  
+  (define dialog-selection-entity
+    (dialog-selection list-of-dialog
+                      (image-width (draw-dialog-list list-of-dialog 18 0))
+                      18
+                      0
+                      select-sound))
+  (list
+   (precompiler dialog-list-entity
+                dialog-selection-entity)
+   (on-key talk-key #:rule (ready-to-speak-and-near? name)
+           (do-many (set-counter 0)
+                    (spawn dialog-list-entity #:relative? #f)
+                    (play-sound open-sound)))))
 
 
 ; === NOT USED YET ====

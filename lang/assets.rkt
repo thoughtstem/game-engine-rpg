@@ -18,7 +18,6 @@
 (define outdoor-set
   (bitmap "images/outdoor-set-1.png"))
 
-
 (define house-set
   (bitmap "images/interior-set-1.png"))
 
@@ -34,9 +33,7 @@
   (sprite->entity (render-tile backdrop)
                   #:name "bg"
                   #:position (posn 0 0)
-                  #:components backdrop
-                               #;(precompiler
-                                (backdrop-tiles (first backdrop)))))
+                  #:components backdrop))
 
 (define wall-tile
   (freeze
@@ -390,7 +387,8 @@
                   #:hue hue
                   #:size size
                   #:components (append
-                                (list (on-start (spawn tree-top-entity)))
+                                (list (precompiler tree-top-entity)
+                                      (on-start (spawn tree-top-entity)))
                                 (cons c custom-components)))  )
 
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -410,7 +408,8 @@
                   #:hue hue
                   #:size size
                   #:components (append
-                                (list (on-start (spawn tree-top-entity)))
+                                (list (precompiler tree-top-entity)
+                                      (on-start (spawn tree-top-entity)))
                                 (cons c custom-components)))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
