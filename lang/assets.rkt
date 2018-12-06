@@ -15,28 +15,15 @@
 (define SNOW-BG
   (bitmap "images/lpc_snow.png"))
 
+(define barrel-set
+  (bitmap "images/barrels.png"))
+
+#|
 (define outdoor-set
   (bitmap "images/outdoor-set-1.png"))
 
 (define house-set
   (bitmap "images/interior-set-1.png"))
-
-(define barrel-set
-  (bitmap "images/barrels.png"))
-
-(define (custom-background #:bg-img     [bg FOREST-BG]
-                           #:rows       [rows 3]
-                           #:columns    [cols 3]
-                           #:start-tile [t 0]
-                           #:components [c #f]
-                                        . custom-components)
-  (define backdrop
-    (bg->backdrop bg #:rows rows #:columns cols #:start-tile t))
-  (sprite->entity (render-tile backdrop)
-                  #:name "bg"
-                  #:position (posn 0 0)
-                  #:components backdrop
-                               (cons c custom-components)))
 
 (define wall-tile
   (freeze
@@ -120,13 +107,6 @@
    (crop (* 5 32) (* 14 32)
          (* 1 32) (* 1 32)
          house-set)))
-
-
-(define apple-barrel-tile
-  (freeze
-   (crop (* 0 31) (* 1 31)
-         (* 1 31) (* 1 31)
-         barrel-set)))
 
 (define empty-barrel-tile
   (freeze
@@ -324,7 +304,13 @@
          (* 2 32) (* 2 32)
          outdoor-set-2)))
 
+|#
 
+(define apple-barrel-tile
+  (freeze
+   (crop (* 0 31) (* 1 31)
+         (* 1 31) (* 1 31)
+         barrel-set)))
 
 ;Other house set
 
