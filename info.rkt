@@ -9,6 +9,7 @@
 
 (define compile-omit-paths '(
   "docs"
+  "examples"
 ))
 
 (define deps '(

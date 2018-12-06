@@ -1,1 +1,1 @@
-("7.0" ("9b621576c4dc488563aeaf0add57af1a6a61b296" . "43bcef529c732ead39be9bc31fce474d1f1f61c1") (collects #"2htdp" #"image.rkt") (collects #"game-engine" #"main.rkt") (collects #"game-engine-rpg" #"main.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
+("7.0" ("9b621576c4dc488563aeaf0add57af1a6a61b296" . "ac2f61669bf2f39cd035a617b2ddb8f21a9c42f4") (collects #"2htdp" #"image.rkt") (collects #"game-engine" #"main.rkt") (collects #"game-engine-rpg" #"main.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
