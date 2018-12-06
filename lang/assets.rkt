@@ -24,16 +24,19 @@
 (define barrel-set
   (bitmap "images/barrels.png"))
 
-(define (basic-background #:bg-img     [bg FOREST-BG]
-                          #:rows       [rows 3]
-                          #:columns    [cols 3]
-                          #:start-tile [t 0])
+(define (custom-background #:bg-img     [bg FOREST-BG]
+                           #:rows       [rows 3]
+                           #:columns    [cols 3]
+                           #:start-tile [t 0]
+                           #:components [c #f]
+                                        . custom-components)
   (define backdrop
     (bg->backdrop bg #:rows rows #:columns cols #:start-tile t))
   (sprite->entity (render-tile backdrop)
                   #:name "bg"
                   #:position (posn 0 0)
-                  #:components backdrop))
+                  #:components backdrop
+                               (cons c custom-components)))
 
 (define wall-tile
   (freeze
@@ -551,9 +554,13 @@
   )
 
 (define/contract (generic-entity i p #:name [name "thing"] #:tile tile #:hue hue #:size size #:components (custom-components '()))
-  (->* (animated-sprite? posn?  #:tile number? #:hue number? #:size number?)
+  (->* ((or/c animated-sprite? image?) posn?  #:tile number? #:hue number? #:size number?)
        (#:name string? #:components list?)
        entity?)
+
+  (define sprite (if (image? i)
+                     (new-sprite i)
+                     i))
   (define  required-components
     (list
      (physical-collider)
@@ -571,7 +578,7 @@
      ))
   
   (sprite->entity (sprite-map (curry scale size)
-                              (sprite-map (curry change-img-hue hue) i))
+                              (sprite-map (curry change-img-hue hue) sprite))
                   #:name  name
                   #:position p
                   #:components (append

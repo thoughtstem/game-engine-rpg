@@ -8,7 +8,7 @@
          carrot-entity
          carrot-stew-entity
          cauldron-sprite
-         basic-crafter)
+         custom-food)
  
 (require 2htdp/image
          game-engine
@@ -17,6 +17,7 @@
 (define component? any/c)
 
 (define (crafting-chest [p (posn 0 0)]
+                        #:name   [name "Crafting Chest"]
                         #:icon   [icon empty-image]
                         #:sprite [sprite #f]
                         #:tile   [tile 0]
@@ -34,7 +35,7 @@
                                     (crafting-chest-icon icon chest-image))
                                 chest-image)))
                   p
-                  #:name "Crafting Chest"
+                  #:name name
                   #:tile tile
                   #:hue hue
                   #:size size
@@ -282,16 +283,6 @@
                  #:columns 4
                  #:delay 2))
 
-; ==== CRAFTER ENTITIES ====
-(define (basic-crafter [p (posn 100 100)]
-                       #:tile       [t 0]
-                       #:sprite     [sprite cauldron-sprite]
-                       #:components [c #f] . custom-components)
-  (crafting-chest p
-                  #:sprite sprite
-                  #:components (active-on-bg t)
-                               (counter 0)
-                               (cons c custom-components)))
 
 ; === RESPAWNABLE CRAFTING ASSETS ===
 ; These assets respawn and relocate when collected with spacebar
@@ -311,6 +302,43 @@
                                (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
                                                                                (active-on-random)))
                                ))
+
+(define (custom-food #:sprite           [sprite (new-sprite (bitmap "images/carrot.png"))]
+                     #:position         [position (posn 0 0)]
+                     #:name             [name "Carrot"]
+                     #:tile             [tile 0]
+                     #:random-position? [random? #t]
+                     #:respawn?         [respawn? #t]
+                     #:components       [c #f]
+                                        . custom-entities)
+  (define base-entity
+    (sprite->entity sprite
+                    #:position    position
+                    #:name        name
+                    #:components (active-on-bg tile)
+                                 (hidden)
+                                 (storable)
+                                 (physical-collider)
+                                 (stop-on-edge)
+                                 (on-start (do-many (active-on-random)
+                                                    (respawn 'anywhere)
+                                                    show))
+                                 (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
+                                                                                 (active-on-random)))
+                                 ))
+  (define base-entity-with-random
+    (if random?
+        (add-components base-entity (on-start (do-many (active-on-random)
+                                                       (respawn 'anywhere)
+                                                       show)))
+        (add-components base-entity (on-start show))))
+  (define base-entity-with-respawn
+    (if respawn?
+        (add-components base-entity-with-random (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
+                                                                                         (active-on-random))))
+        (add-components base-entity-with-random (consumable))))
+  (add-components base-entity-with-respawn (cons c custom-entities)))
+  
 
 ; === CRAFTING PRODUCTS ===
 (define (carrot-stew-entity)
