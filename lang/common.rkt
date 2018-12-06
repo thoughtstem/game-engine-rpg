@@ -1,17 +1,17 @@
 #lang racket
 
-(provide place-in-room
-         nudge-down
-         nudge-right
-         above-room
-         beside-room
-         room
-         room->image
-         texture-with
-         room-width
-         room-height
-         room-list->entity-list
-         test-room
+(provide ;place-in-room
+         ;nudge-down
+         ;nudge-right
+         ;above-room
+         ;beside-room
+         ;room
+         ;room->image
+         ;texture-with
+         ;room-width
+         ;room-height
+         ;room-list->entity-list
+         ;test-room
          (all-from-out "./assets.rkt")
          (all-from-out "./health-bar.rkt")
          (all-from-out "./player-dialog.rkt")
@@ -33,6 +33,7 @@
 (module+ test
   (require rackunit))
 
+#|
 (define (repeat n f x)
   (if (= 0 n)
       x
@@ -1039,3 +1040,5 @@
       
     (room-list->entity-list h)
     )))
+
+|#

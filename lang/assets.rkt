@@ -15,28 +15,15 @@
 (define SNOW-BG
   (bitmap "images/lpc_snow.png"))
 
-(define outdoor-set
-  (bitmap "images/outdoor-set-1.png"))
-
-
-(define house-set
-  (bitmap "images/interior-set-1.png"))
-
 (define barrel-set
   (bitmap "images/barrels.png"))
 
-(define (basic-background #:bg-img     [bg FOREST-BG]
-                          #:rows       [rows 3]
-                          #:columns    [cols 3]
-                          #:start-tile [t 0])
-  (define backdrop
-    (bg->backdrop bg #:rows rows #:columns cols #:start-tile t))
-  (sprite->entity (render-tile backdrop)
-                  #:name "bg"
-                  #:position (posn 0 0)
-                  #:components backdrop
-                               #;(precompiler
-                                (backdrop-tiles (first backdrop)))))
+#|
+(define outdoor-set
+  (bitmap "images/outdoor-set-1.png"))
+
+(define house-set
+  (bitmap "images/interior-set-1.png"))
 
 (define wall-tile
   (freeze
@@ -120,13 +107,6 @@
    (crop (* 5 32) (* 14 32)
          (* 1 32) (* 1 32)
          house-set)))
-
-
-(define apple-barrel-tile
-  (freeze
-   (crop (* 0 31) (* 1 31)
-         (* 1 31) (* 1 31)
-         barrel-set)))
 
 (define empty-barrel-tile
   (freeze
@@ -324,7 +304,13 @@
          (* 2 32) (* 2 32)
          outdoor-set-2)))
 
+|#
 
+(define apple-barrel-tile
+  (freeze
+   (crop (* 0 31) (* 1 31)
+         (* 1 31) (* 1 31)
+         barrel-set)))
 
 ;Other house set
 
@@ -390,7 +376,8 @@
                   #:hue hue
                   #:size size
                   #:components (append
-                                (list (on-start (spawn tree-top-entity)))
+                                (list (precompiler tree-top-entity)
+                                      (on-start (spawn tree-top-entity)))
                                 (cons c custom-components)))  )
 
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -410,7 +397,8 @@
                   #:hue hue
                   #:size size
                   #:components (append
-                                (list (on-start (spawn tree-top-entity)))
+                                (list (precompiler tree-top-entity)
+                                      (on-start (spawn tree-top-entity)))
                                 (cons c custom-components)))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -552,9 +540,13 @@
   )
 
 (define/contract (generic-entity i p #:name [name "thing"] #:tile tile #:hue hue #:size size #:components (custom-components '()))
-  (->* (animated-sprite? posn?  #:tile number? #:hue number? #:size number?)
+  (->* ((or/c animated-sprite? image?) posn?  #:tile number? #:hue number? #:size number?)
        (#:name string? #:components list?)
        entity?)
+
+  (define sprite (if (image? i)
+                     (new-sprite i)
+                     i))
   (define  required-components
     (list
      (physical-collider)
@@ -572,7 +564,7 @@
      ))
   
   (sprite->entity (sprite-map (curry scale size)
-                              (sprite-map (curry change-img-hue hue) i))
+                              (sprite-map (curry change-img-hue hue) sprite))
                   #:name  name
                   #:position p
                   #:components (append
