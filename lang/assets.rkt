@@ -504,6 +504,11 @@
                   #:size size
                   #:components (cons c custom-components)))
 
+(define coin-sprite
+  (sheet->sprite (bitmap "images/coin.png") 
+                                 #:columns  8
+                                 #:delay    2))
+
 (define (coin-entity)
   (sprite->entity (sheet->sprite (bitmap "images/coin.png") 
                                  #:columns  8
@@ -516,8 +521,49 @@
                                (on-start (do-many (active-on-random)
                                                   (respawn 'anywhere)
                                                   show))
-                               (on-key 'space #:rule (near? "player") (do-many (respawn 'anywhere)
-                                                                               (active-on-random)))
+                               (on-key 'space
+                                       #:rule (and/r near-player?
+                                                     (nearest-to-player? #:filter (has-component? on-key?)))
+                                       (do-many (respawn 'anywhere)
+                                                (active-on-random)))
+                               ))
+
+(define (copper-coin-entity)
+  (sprite->entity (sheet->sprite (bitmap "images/coin.png") 
+                                 #:columns  8
+                                 #:delay    2)
+                  #:position   (posn 0 0)
+                  #:name       "Copper Coin"
+                  #:components (active-on-bg 0)
+                               (hidden)
+                               (physical-collider)
+                               (on-start (do-many (active-on-random)
+                                                  (respawn 'anywhere)
+                                                  show))
+                               (on-key 'space
+                                       #:rule (and/r near-player?
+                                                     (nearest-to-player? #:filter (has-component? on-key?)))
+                                       (do-many (respawn 'anywhere)
+                                                (active-on-random)))
+                               ))
+
+(define (silver-coin-entity)
+  (sprite->entity (sheet->sprite (bitmap "images/coin.png") 
+                                 #:columns  8
+                                 #:delay    2)
+                  #:position   (posn 0 0)
+                  #:name       "Silver Coin"
+                  #:components (active-on-bg 0)
+                               (hidden)
+                               (physical-collider)
+                               (on-start (do-many (active-on-random)
+                                                  (respawn 'anywhere)
+                                                  show))
+                               (on-key 'space
+                                       #:rule (and/r near-player?
+                                                     (nearest-to-player? #:filter (has-component? on-key?)))
+                                       (do-many (respawn 'anywhere)
+                                                (active-on-random)))
                                ))
 
 (define (simple-sheet->sprite i)
