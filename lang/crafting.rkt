@@ -297,13 +297,14 @@
                   #:position   (posn 0 0)
                   #:name       "Carrot"
                   #:components (active-on-bg 0)
-                               (hidden)
+                               ;(hidden)
                                (storable)
                                (physical-collider)
-                               (on-start (do-many (active-on-random)
+                               (stop-on-edge)
+                               #;(on-start (do-many (active-on-random)
                                                   (respawn 'anywhere)
                                                   show))
-                               (on-key 'space
+                               #;(on-key 'space
                                        #:rule (and/r near-player?
                                                      (nearest-to-player? #:filter (has-component? on-key?)))
                                        (do-many (respawn 'anywhere)
