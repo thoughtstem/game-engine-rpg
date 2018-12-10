@@ -142,8 +142,10 @@
 (define (draw-counter-rpg #:prefix [prefix ""])
   (lambda (g e)
     (define count (get-counter e))
-    (define count-image (draw-dialog (~a prefix count)))
-    ((change-sprite (new-sprite count-image)) g e)))
+
+    (define current-sprite (get-component e string-animated-sprite?))
+    
+    ((change-sprite (set-text (~a prefix count) current-sprite)) g e)))
 
 (define (remove-on-key g e)
   (remove-component e on-key?))
