@@ -36,17 +36,16 @@
     ;Simulate three ticks for this entity
     (define new-health-entity
       (~> health-entity
-          (tick-entity g _ #:ticks 10)))
+          (tick-entity g _ #:ticks 50)))
 
-    #;(displayln (list
-                (draw-entity new-health-entity)
-                (draw-health-bar 90 #:max 100)))
 
-    ;Make sure it looks like it lost three points of health
-    (check-equal? (draw-entity new-health-entity)
-                  (draw-health-bar 90 #:max 100)))
-  
-  )
+    (check-equal? (image-width (draw-entity new-health-entity))
+                  (image-width (draw-entity health-entity))
+                  "Health bar gui should not change width")
+
+    (check-equal? (image-width (render (last (get-components new-health-entity animated-sprite?))))
+                  50
+                  "Health bar red portion should change width")))
 
 (provide (all-defined-out))
 
@@ -60,22 +59,29 @@
 
   (define main-sprite (set-x-scale max (new-sprite health-bar-slice)))
 
-  (define bg-sprite (new-sprite (health-bar-bg max 10)))
+  (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
+  (precompile! bg-image)
+  
+
+  (define bg-sprite (~> bg-image
+                        (new-sprite _ #:animate #f)
+                        (set-x-scale 104 _)
+                        (set-y-scale 14 _)))
   
   (define e
-    (sprite->entity main-sprite
-                  #:name "health"
-                  #:position (posn 100 20)
-                  #:components
-                  (counter 100)
-                  (layer "ui")
-                  (storage "efficient-health-bar" #t)
-                  (do-every starvation-period (maybe-change-health-by change-by #:max max))
-                  (precompiler main-sprite
-                               bg-sprite)
-                  ))
+    (sprite->entity bg-sprite
+                    #:name "health"
+                    #:position (posn 100 20)
+                    #:components
+                    (counter 100)
+                    (layer "ui")
+                    (storage "efficient-health-bar" #t)
+                    (do-every starvation-period (maybe-change-health-by change-by #:max max))
+                    (precompiler main-sprite
+                                 bg-sprite)
+                    ))
 
-  (add-component-at-end e bg-sprite)
+  (add-component e main-sprite)
   )
 
 (define/contract (draw-health-bar amount #:max [max-val 100])
@@ -105,7 +111,8 @@
 
 (define (efficient-update-health-bar g e count #:max max-val)
   (define current-health-sprite
-    (get-component e animated-sprite?))
+    (last (get-components e animated-sprite?)))
+
 
   (define percentage (* 100
                         (/ count max-val)))
@@ -114,9 +121,11 @@
     (~> current-health-sprite
         (set-x-scale  percentage _)
         (set-x-offset (- (/ (- 100 percentage) 2)) _)))
-  
-  ((change-sprite new-health-sprite) g e)
 
+
+  (update-entity e
+                 (is-component? current-health-sprite)
+                 new-health-sprite)
   )
 
 (define (slow-update-health-bar g e count #:max max-val)
@@ -145,7 +154,12 @@
 
     (define current-sprite (get-component e string-animated-sprite?))
     
-    ((change-sprite (set-text (~a prefix count) current-sprite)) g e)))
+    ((change-sprite (set-text (~a prefix count) current-sprite)) g e)
+
+    (update-entity e
+                   (is-component? current-sprite)
+                   (set-text (~a prefix count) current-sprite))
+    ))
 
 (define (remove-on-key g e)
   (remove-component e on-key?))

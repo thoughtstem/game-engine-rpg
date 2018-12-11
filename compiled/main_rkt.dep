@@ -1,1 +1,0 @@
-("7.0" ("3c767d6e311981f9c401a72c41edfd0a47fe92b0" . "01b8fdc5f75ab055b8edeea2bf8df11a6e24b18f") (collects #"game-engine-rpg" #"lang" #"common.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
