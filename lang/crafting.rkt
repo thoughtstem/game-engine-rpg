@@ -5,10 +5,19 @@
          crafting-entity
          crafting-chest
          crafting-menu
+         
          carrot-sprite
          carrot-entity
          carrot-stew-entity
+         
          cauldron-sprite
+         campfire-sprite
+         wood-table-sprite
+         fish-sprite
+         cooked-fish-sprite
+         bowl-sprite
+         toasted-marshmallow-sprite
+         
          consumable)
  
 (require 2htdp/image
@@ -279,14 +288,44 @@
 (define (consumable) (on-key 'space #:rule (and/r near-player?
                                                   (nearest-to-player? #:filter (has-component? on-key?))) die))
 
-; ==== CRAFTER SPRITES ====
+; ==== CRAFTER AND CRAFTING ENTITY SPRITES ====
 (define cauldron-sprite
   (sheet->sprite (scale 0.75 (bitmap "images/cauldron.png"))
                  #:columns 4
                  #:delay 2))
 
+(define campfire-sprite
+  (sheet->sprite (bitmap "images/campfire.png")
+                 #:columns 4
+                 #:delay 4))
+
+(define wood-table-sprite
+  (new-sprite (bitmap "images/wood-table.png")))
+
 (define carrot-sprite
   (new-sprite (bitmap "images/carrot.png")))
+
+(define carrot-stew-sprite
+  (new-sprite (bitmap "images/carrot-stew.png")))
+
+(define fish-sprite
+  (new-sprite (bitmap "images/fish.png")))
+
+(define cooked-fish-sprite
+  (new-sprite (bitmap "images/cooked-fish.png")))
+
+(define toasted-marshmallow-sprite
+  (new-sprite (bitmap "images/toasted-marshmallow.png")))
+
+(define smores-sprite
+  (new-sprite (bitmap "images/smores.png")))
+
+(define bowl-sprite
+  (new-sprite (bitmap "images/bowl.png")))
+
+(define fish-stew-sprite
+  (new-sprite (bitmap "images/fish-stew.png")))
+
 
 ; === RESPAWNABLE CRAFTING ASSETS ===
 ; These assets respawn and relocate when collected with spacebar
