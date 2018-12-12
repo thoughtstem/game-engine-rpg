@@ -169,7 +169,7 @@
 (define (get-crafting-selection)
   (lambda (g e)
     (define selection (get-counter (get-entity "crafting selection" g)))
-    (displayln (~a "Crafting Selection: " selection))
+    ;(displayln (~a "Crafting Selection: " selection))
     (update-entity e counter? (counter selection))))
 
 (define (crafter p
@@ -276,11 +276,11 @@
   (define i-list (recipe-ingredients r))
   (define (remove-items g e1 e2)
     (if ((crafting? product-name) g e2)
-        (begin (displayln (~a "CRAFTING: " product-name))
+        (begin ;(displayln (~a "CRAFTING: " product-name))
                ((apply do-many (map remove-item-by-name i-list)) g e2)
                    #;((spawn (backpack-entity #:components (on-rule (crafting? product-name) die))
                            #:relative? #f) g _))
-        (begin (displayln (~a "NOT CRAFTING: " product-name))
+        (begin ;(displayln (~a "NOT CRAFTING: " product-name))
                e2)))
   (observe-change (crafting? product-name) remove-items))
 
