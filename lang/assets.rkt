@@ -5,6 +5,14 @@
 (require 2htdp/image
          game-engine)
 
+(define (simple-sheet->sprite i)
+  (sheet->sprite i
+                 #:rows       1
+                 #:columns    1
+                 #:row-number 1
+                 #:speed      0))
+
+
 ;NOTE.  Don't use these assets in production.
 ;  Copyright stuff.
 ;  Educational use is fine...
@@ -415,14 +423,63 @@
 
 
 
-;additional entities from LPC
+;MISC from LPC
 
+; ==== MISC SHEETS =====
+(define CAT-SHEET        (bitmap "images/cat-sprite.png"))
+(define BLACK-CAT-SHEET  (bitmap "images/black-cat-sprite.png"))
+(define WHITE-CAT-SHEET  (bitmap "images/white-cat-sprite.png"))
+(define BAT-SHEET        (bitmap "images/bat-sprite.png"))
+(define SLIME-SHEET      (bitmap "images/slime-sprite.png"))
+(define SNAKE-SHEET      (bitmap "images/snake-sprite.png"))
+
+; ==== MISC SPRITES =====
+(define cat-sprite
+  (sheet->sprite CAT-SHEET 
+                 #:rows       1
+                 #:columns    3
+                 #:row-number 1
+                 #:speed      3))
+
+(define black-cat-sprite
+  (sheet->sprite  BLACK-CAT-SHEET
+                  #:rows       4
+                  #:columns    3
+                  #:row-number 1
+                  #:speed      3))
+
+(define white-cat-sprite
+  (sheet->sprite WHITE-CAT-SHEET 
+                 #:rows       4
+                 #:columns    3
+                 #:row-number 1
+                 #:speed      3))
+
+(define bat-sprite
+  (sheet->sprite BAT-SHEET
+                 #:rows       4
+                 #:columns    3
+                 #:row-number 1
+                 #:speed      3))
+
+(define slime-sprite
+  (sheet->sprite SLIME-SHEET 
+                 #:rows       4
+                 #:columns    3
+                 #:row-number 1
+                 #:speed      3))
+
+(define snake-sprite
+  (sheet->sprite SNAKE-SHEET 
+                 #:rows       4
+                 #:columns    3
+                 #:row-number 4
+                 #:speed      3))
+
+
+; ==== MISC ENTITIES =====
 (define (cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/cat-sprite.png") 
-                                 #:rows       1
-                                 #:columns    3
-                                 #:row-number 1
-                                 #:speed      3)
+  (generic-entity cat-sprite
                   p
                   #:name "Cat"
                   #:tile tile
@@ -431,11 +488,7 @@
                   #:components (cons c custom-components)))
 
 (define (black-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/black-cat-sprite.png") 
-                                 #:rows       4
-                                 #:columns    3
-                                 #:row-number 1
-                                 #:speed      3)
+  (generic-entity black-cat-sprite
                   p
                   #:name "Black Cat"
                   #:tile tile
@@ -444,11 +497,7 @@
                   #:components (cons c custom-components)))
 
 (define (white-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/white-cat-sprite.png") 
-                                 #:rows       4
-                                 #:columns    3
-                                 #:row-number 1
-                                 #:speed      3)
+  (generic-entity white-cat-sprite
                   p
                   #:name "White Cat"
                   #:tile tile
@@ -457,11 +506,7 @@
                   #:components (cons c custom-components)))
 
 (define (bat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/bat-sprite.png") 
-                                 #:rows       4
-                                 #:columns    3
-                                 #:row-number 1
-                                 #:speed      3)
+  (generic-entity bat-sprite
                   p
                   #:name "Bat"
                   #:tile tile
@@ -470,11 +515,7 @@
                   #:components (cons c custom-components)))
 
 (define (slime [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/slime-sprite.png") 
-                                 #:rows       4
-                                 #:columns    3
-                                 #:row-number 1
-                                 #:speed      3)
+  (generic-entity slime-sprite
                   p
                   #:name "Slime"
                   #:tile tile
@@ -483,11 +524,7 @@
                   #:components (cons c custom-components)))
 
 (define (snake [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity (sheet->sprite (bitmap "images/snake-sprite.png") 
-                                 #:rows       4
-                                 #:columns    3
-                                 #:row-number 4
-                                 #:speed      3)
+  (generic-entity snake-sprite
                   p
                   #:name "Snake"
                   #:tile tile
@@ -495,14 +532,32 @@
                   #:size size
                   #:components (cons c custom-components)))
 
+;food LPC entities
+
+;==== FOOD SHEETS ====
+(define APPLES-SHEET  apple-barrel-tile)
+(define CHERRY-SHEET  (bitmap "images/cherry-sprite.png"))
+(define STEAK-SHEET   (bitmap "images/steak-sprite.png"))
+
+;==== FOOD SPRITES ====
+(define apples-sprite  (simple-sheet->sprite APPLES-SHEET))
+
+(define cherry-sprite  (simple-sheet->sprite CHERRY-SHEET))
+
+(define steak-sprite   (simple-sheet->sprite STEAK-SHEET))
+
+;==== FOOD ENTITIES ====
 (define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components)
-  (generic-entity (simple-sheet->sprite apple-barrel-tile)
+  (generic-entity apples-sprite
                   p
                   #:name "Apples"
                   #:tile tile
                   #:hue hue
                   #:size size
                   #:components (cons c custom-components)))
+
+;no (cherry-entity)
+
 
 ; ==== COIN SHEETS =====
 (define COIN-SHEET        (bitmap "images/coin.png"))
@@ -573,12 +628,6 @@
                                (physical-collider)
                                ))
 
-(define (simple-sheet->sprite i)
-  (sheet->sprite i
-                 #:rows       1
-                 #:columns    1
-                 #:row-number 1
-                 #:speed      0))
 
 (define (customizer-system)
   (hue-val 0)
