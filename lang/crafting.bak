@@ -266,10 +266,7 @@
                      #:build-time [build-time 0]
                      #:ingredients [i-list '()]
                      #:rule [rule (λ (g e) #t)])
-
-  (recipe (~> product
-              (remove-component _ on-key?)
-              (add-components _ (consumable)))
+  (recipe product
           build-time
           i-list
           rule))
@@ -367,14 +364,14 @@
   (require rackunit)
   
   (define smores-recipe
-    (make-recipe #:product    (apples)
+    (make-recipe #:product    apples
                  #:build-time 10
                  #:ingredients (list "Toasted Marshmallow")
                  ;#:rule        (has-gold? 10)
                  ))
 
   (define marshmallows-recipe
-    (make-recipe #:product (bat)))
+    (make-recipe #:product bat))
 
   (define test-menu (flatten (crafting-menu #:open-key 'space
                                             #:recipes smores-recipe
