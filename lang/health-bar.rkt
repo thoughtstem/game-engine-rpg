@@ -172,3 +172,57 @@
                   (stop-animation)
                   (change-sprite (new-sprite dead-player-image))) g e2)
         e2)))
+
+
+;==== Version 2 - More abstract bars ====
+
+
+(define (abstract-progress-bar #:color (color 'red)
+                               #:width (w 100)
+                               #:height (h 10)
+                               #:data-from data-from)
+  
+  (define health-bar-slice (rectangle 1 1 'solid color))
+  (define main-sprite (~> health-bar-slice
+                          (new-sprite _)
+                          (set-x-scale w _)
+                          (set-y-scale h _)))
+  (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
+  (precompile! bg-image)
+  
+
+  (define bg-sprite (~> bg-image
+                        (new-sprite _ #:animate #f)
+                        (set-x-scale (+ 2 w) _)
+                        (set-y-scale (+ 2 h) _)))
+
+
+  (define (update-from-data g e)
+    (define data (data-from g))
+
+    (define percentage (/ data 100)) ;This should div by max??
+
+    (if data
+        (update-entity e
+                   (is-component? (last (get-components e animated-sprite?)))
+                   (set-x-scale (* percentage w) main-sprite) ;Need to make this a percentage
+                   )
+        e))
+  
+  (define e
+    (sprite->entity bg-sprite
+                    #:name "progress-bar"
+                    #:position (posn 0 0)
+                    #:components
+                    (layer "ui")
+                    (precompiler main-sprite
+                                 bg-sprite)
+                    (every-tick  update-from-data)
+                    ))
+
+  (add-component e main-sprite)
+ 
+  )
+
+
+
