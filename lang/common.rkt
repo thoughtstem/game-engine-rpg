@@ -18,6 +18,7 @@
          (all-from-out "./heros.rkt")
          (all-from-out "./links.rkt")
          (all-from-out "./combat.rkt")
+         (all-from-out "./crafting.rkt")
          )
 
 (require 2htdp/image)
