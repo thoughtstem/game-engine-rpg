@@ -299,6 +299,9 @@
   (stat-config n starting-value (display-entity n)))
 
 
+(define (marked-for-dead? target-e)
+        (lambda (g e)
+          ((has-component? dead?) target-e)))
 
 ;This is admittedly a mess, but this is what you would
 ; change to make a new kind of progress bar display
@@ -327,8 +330,9 @@
     
       (~>
        (displayer data-source)
-       (add-component _ (lock-to find-combatant
-                                 #:offset p))))))
+       (add-components _ (lock-to find-combatant
+                                 #:offset p)
+                          )))))
 
 
 (define/contract (combatant original-e
@@ -353,11 +357,13 @@
      (λ(stat)
        ((stat-config-display-entity stat) find-combatant))
      stats))
-  
+
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn b)))
+       (on-start (spawn (add-components b
+                                        (on-rule (λ (g e)
+                                                   (not (find-combatant g))) die)))))
      bars))
   
   (define e-without-stats
