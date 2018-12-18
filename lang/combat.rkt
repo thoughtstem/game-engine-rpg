@@ -12,7 +12,7 @@
                     #:name ""
                     #:position (posn 0 0)))
 
-  (define take-10-damage (damager 10))
+  (define take-10-damage (make-damager 10))
 
   
   (define (half x) (/ x 2))
@@ -52,6 +52,16 @@
                                    take-10-damage
                                    #:final-health 90
                                    "Taking 10 damage normally should give you 90 health"))
+
+
+  (let ()
+    (define player (combatant #:damage-processor (filter-damage-by-tag #:filter-out 'team-a)
+                               base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(team-a))
+                                   #:final-health 100
+                                   "Taking 10 damage from something 'on your team' should not remove health"))
 
 
   ;Combatants can start with a different level of health
@@ -121,14 +131,20 @@
 
 (provide combatant
          divert-damage
-         damager
-         damage-processor)
+         (rename-out (make-damager damager))
+         damager-amount
+         damage-processor
+         no-progress-bar
+         make-stat-config)
 
 (require game-engine)
 
 
-(struct damager          (amount))
+(struct damager          (amount tags))
 (struct damage-processor (f))
+
+(define (make-damager amount (tags '()))
+  (damager amount tags))
 
 (define (make-damage-processor f)
   (damage-processor f))
@@ -139,6 +155,13 @@
    (λ(g an-entity a-damager)
      (effect an-entity (- (adj (damager-amount a-damager)))))))
 
+(define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
+  (make-damage-processor
+   (λ(g an-entity a-damager)
+     (if (member tag (damager-tags a-damager))
+         an-entity
+         (effect an-entity (- (adj (damager-amount a-damager))))))))
+
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
 
@@ -147,7 +170,8 @@
 (define (divert-damage #:first-stat-protection  (adj1 identity)
                        #:first-stat             (stat1 "shield") 
                        #:second-stat-protection (adj2 identity)
-                       #:second-stat            (stat2 "health"))
+                       #:second-stat            (stat2 "health")
+                       #:filter-out             (tag #f))
 
   ;Wow, you can have contracts on an inner function...
   (define/contract (inner g an-entity a-damager)
@@ -170,10 +194,11 @@
 
     ;(displayln (~a "second-damage " second-damage))
 
-    (~> an-entity
-        (change-stat stat1 _ (- first-damage))
-        (change-stat stat2 _ (- second-damage))))
-
+    (if (member tag (damager-tags a-damager))
+         an-entity
+         (~> an-entity
+             (change-stat stat1 _ (- first-damage))
+             (change-stat stat2 _ (- second-damage)))))
 
   (make-damage-processor
    inner))
@@ -299,9 +324,6 @@
   (stat-config n starting-value (display-entity n)))
 
 
-(define (marked-for-dead? target-e)
-        (lambda (g e)
-          ((has-component? dead?) target-e)))
 
 ;This is admittedly a mess, but this is what you would
 ; change to make a new kind of progress bar display
@@ -330,9 +352,19 @@
     
       (~>
        (displayer data-source)
-       (add-components _ (lock-to find-combatant
-                                 #:offset p)
-                          )))))
+       (add-component _ (lock-to find-combatant
+                                 #:offset p))))))
+
+(define (no-progress-bar)
+ (λ(stat-name)
+    (λ(find-combatant)
+      (~>
+       (sprite->entity empty-image
+                       #:position (posn 0 0)
+                       #:name "null"
+                       #:components
+                       (on-start die))
+       (add-component _ (lock-to find-combatant))))))
 
 
 (define/contract (combatant original-e
@@ -357,13 +389,11 @@
      (λ(stat)
        ((stat-config-display-entity stat) find-combatant))
      stats))
-
+  
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn (add-components b
-                                        (on-rule (λ (g e)
-                                                   (not (find-combatant g))) die)))))
+       (on-start (spawn b)))
      bars))
   
   (define e-without-stats

@@ -18,6 +18,7 @@
          (all-from-out "./heros.rkt")
          (all-from-out "./links.rkt")
          (all-from-out "./combat.rkt")
+         (all-from-out "./weapon.rkt")
          (all-from-out "./crafting.rkt")
          )
 
@@ -31,6 +32,8 @@
 (require "./links.rkt")
 (require "./crafting.rkt")
 (require "./combat.rkt")
+(require "./weapon.rkt")
+
 
 (module+ test
   (require rackunit))
