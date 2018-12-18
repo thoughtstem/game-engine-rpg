@@ -133,6 +133,7 @@
          divert-damage
          (rename-out (make-damager damager))
          damager-amount
+         damager-tags
          damage-processor
          no-progress-bar
          make-stat-config)
@@ -393,7 +394,9 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn b)))
+       (on-start (spawn (add-components b (active-on-bg 0)
+                                          (on-rule (λ (g e) (not (find-combatant g))) die)))
+                 ))
      bars))
   
   (define e-without-stats
