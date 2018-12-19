@@ -8,7 +8,9 @@
          weapon-backpack
          shoot
          process-bullet
-         enemy-ai)
+         enemy-ai
+         weapon-selector
+         weapon-is?)
 
 (require game-engine
          "./combat.rkt"
@@ -48,6 +50,7 @@
                   #:position   p
                   #:components (physical-collider)
                                (direction 0)
+                               (active-on-bg 0)
                                (damager dmg (list 'bullet))
                                (on-rule (λ(g e)
                                           (<= (get-storage-data "durability-stat" e) 0)) die)
@@ -74,6 +77,28 @@
   (list (storage "Weapon Slot" 1)
         (map slot->on-key (range 1 (add1 slots)))))
 
+(define (select-backpack-item num)
+  (lambda (g e)
+    (define backpack-list (get-backpack-entities e))
+    (define item-name (if (> (length backpack-list) num)
+                          (get-name (list-ref backpack-list num))
+                          #f))
+    (if item-name
+        (begin (displayln (~a "WEAPON SELECTED: " item-name))
+               ((set-storage-named "Selected Weapon" item-name) g e))
+        e)))
+
+(define (weapon-selector #:slots [slots 1])
+  (define (slot->on-key num)
+    (on-key num (select-backpack-item (sub1 num))))
+  (list (storage "Selected Weapon" "None")
+        (map slot->on-key (range 1 (add1 slots)))))
+
+(define (weapon-is? name)
+  (lambda (g e)
+    (define current-weapon (get-storage-data "Selected Weapon" e))
+    (eq? current-weapon name)))
+
 
 (define (custom-weapon #:slot              [slot #f]
                        #:bullet            [b (custom-bullet)]
@@ -81,17 +106,20 @@
                        #:fire-rate         [fr 3]
                        #:fire-key          [key 'f]
                        #:mouse-fire-button [button #f]
-                       #:rapid-fire? [rf?     #t])
+                       #:rapid-fire?       [rf?     #t]
+                       #:rule              [rule (λ (g e) #t)])
   (define fire-interval (max 1 (/ 30 fr)))
   (define fire-rule (if button
                         (and/r (mouse-button-is-down? button)
                                (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
-                                     (weapon-slot? slot)))
+                                     (weapon-slot? slot))
+                               rule)
                         (and/r (key-is-down? key)
                                (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
-                                     (weapon-slot? slot)))))
+                                     (weapon-slot? slot))
+                               rule)))
   (cond
     [(eq? rf?    #t) (if button
                          (do-every fire-interval #:rule fire-rule (shoot #:bullet (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
@@ -169,14 +197,14 @@
 
 (define (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
   (lambda (g e)
-    ((cond [(eq? fm 'normal) (spawn b )]
+    ((cond [(eq? fm 'normal) (spawn-on-current-tile b )]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
                                                       ;(update-entity  _ speed? (speed 5))
                                                       (add-components _ (follow "Enemy")
                                                                         #;(after-time 1000 die)))])
-                               (spawn homing-bullet))]
+                               (spawn-on-current-tile homing-bullet))]
            [(eq? fm 'random) (let ([random-bullet (add-components b (on-start (change-direction-by-random -15 15)))])
-                               (spawn random-bullet))]
+                               (spawn-on-current-tile random-bullet))]
            [(eq? fm 'spread) (let ([top-bullet    (~> b
                                                       ;(update-entity  _ speed? (speed 20))
                                                       (add-components _ (on-start (change-direction-by -10))
@@ -188,9 +216,8 @@
                                                       ;(update-entity  _ speed? (speed 20))
                                                       (add-components b (on-start (change-direction-by 10))
                                                                     #;(after-time 10 die)))])
-                               (do-many (spawn top-bullet)
-                                        (spawn middle-bullet)
-                                        (spawn bottom-bullet)))]) g e)))
 
-
+                               (do-many (spawn-on-current-tile top-bullet)
+                                        (spawn-on-current-tile middle-bullet)
+                                        (spawn-on-current-tile bottom-bullet)))]) g e)))
 
