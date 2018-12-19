@@ -121,6 +121,34 @@
     )
 
   ;Don't take friendly fire (from self)
+  (let ()
+    (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
+                                                                #:first-stat "shield"
+                                                                #:second-stat "health")
+                              base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(my-team bullet))
+                                   #:final-health 100
+                                   #:final-shield 100
+                                   (~a "Should not take friendly fire"))
+
+    )
+
+   ;Do take enemy fire 
+  (let ()
+    (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
+                                                                #:first-stat "shield"
+                                                                #:second-stat "health")
+                              base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(enemy-team bullet))
+                                   #:final-health 100
+                                   #:final-shield 90
+                                   (~a "Should not take friendly fire"))
+
+    )
 
 
 
@@ -134,14 +162,19 @@
          (rename-out (make-damager damager))
          damager-amount
          damager-tags
+         damager?
          damage-processor
+         damage-processor?
          no-progress-bar
-         make-stat-config)
+         make-stat-config
+         add-damager-tag
+
+         should-filter-out?)
 
 (require game-engine)
 
 
-(struct damager          (amount tags))
+(struct damager          (amount tags) #:transparent)
 (struct damage-processor (f))
 
 (define (make-damager amount (tags '()))
@@ -159,9 +192,22 @@
 (define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (if (member tag (damager-tags a-damager))
+     (if (should-filter-out? a-damager tag )
          an-entity
          (effect an-entity (- (adj (damager-amount a-damager))))))))
+
+(define (should-filter-out? d tag)
+  (define tags (if (list? tag)
+                   tag
+                   (list tag)))
+
+  (define ret (ormap (curryr member (damager-tags d)) tags))
+
+  ret)
+
+(define (add-damager-tag d t)
+  (struct-copy damager d
+               [tags (cons t (damager-tags d))]))
 
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
@@ -195,7 +241,7 @@
 
     ;(displayln (~a "second-damage " second-damage))
 
-    (if (member tag (damager-tags a-damager))
+    (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
              (change-stat stat1 _ (- first-damage))

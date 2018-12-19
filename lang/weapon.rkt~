@@ -4,11 +4,9 @@
          custom-weapon
          weapon-slot?
          weapon->turret
-         use-weapon-against-player
          weapon-backpack
          shoot
-         process-bullet
-         enemy-ai)
+         process-bullet)
 
 (require game-engine
          "./combat.rkt"
@@ -16,7 +14,7 @@
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
-   ; (define tag 'bullet)
+    (define tag 'bullet)
     (define damage (damager-amount a-damager))
     (define bullet-hp (get-storage-data "durability-stat" an-entity))
     (define new-bullet-hp (- bullet-hp damage))
@@ -24,7 +22,7 @@
     (define new-bullet-speed (and (get-ai-speed an-entity)
                                   (/ (get-ai-speed an-entity) 2)))
     (displayln (~a "NEW BULLET HP: " new-bullet-hp))
-    (if (should-filter-out? a-damager tag ) ;(member tag (damager-tags a-damager))
+    (if (member tag (damager-tags a-damager))
         an-entity
         (~> an-entity
             (update-entity _ speed? (speed new-bullet-speed))
@@ -109,88 +107,27 @@
         [(on-mouse? c) (struct-copy struct-on-mouse c [rule (near? "Enemy" 120)])]
         ))
 
-(define (constant-fire g e)
-  #t)
-
-(define (add-bullet-damage-tag b t)
-  (update-entity b damager?
-                 (add-damager-tag (get-component b damager?) t)))
-
-
-
-
-(define (enemy-ai (machine #f))
-  (if machine
-      (on-start (λ(g e) (~> e
-                            (remove-component _ speed?)
-                            (entity-add-machine  machine))))
-      #f))
-
-
-
-
-
-;When enemies shoot bullets, this hacks the bullets immediately after they spawn
-;  and puts tags on them so they don't hurt the shooter.  (Don't want enemies shooting themselves)
-(define (use-weapon-against-player c)
-  (cond [(do-every? c) (struct-copy struct-do-every c
-                                    [rule (λ(g e) #t)]
-                                    [func (do-many
-                                           
-                                           (struct-do-every-func c)
-                                           
-                                           (λ(g e)
-
-                                             (define new-s (update-what-will-spawn (get-component e spawn-once?)
-                                                                                   (compose
-                                                                                    (curryr add-bullet-damage-tag 'enemy-team)
-                                                                                    (λ(e) (add-component e
-                                                                                                         (on-start (point-to "player"))))
-                                                                                    (λ(e)
-                                                                                      (update-entity e damage-processor?
-                                                                                       (damage-processor (process-bullet #:filter-out '(bullet enemy-team)))))
-                                                                                    )
-                                                                                   ))
-
-                                             (update-entity e spawn-once? new-s)))]
-                                    )]
-
-        ;Do i need these??
-        [(on-key?   c) (struct-copy struct-on-key   c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-key-f c))])]
-        [(on-mouse? c) (struct-copy struct-on-mouse c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-mouse-f c))])]))
-
-
-
 (define (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
   (lambda (g e)
     ((cond [(eq? fm 'normal) (spawn b )]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 5))
+                                                      (update-entity  _ speed? (speed 5))
                                                       (add-components _ (follow "Enemy")
                                                                         #;(after-time 1000 die)))])
                                (spawn homing-bullet))]
            [(eq? fm 'random) (let ([random-bullet (add-components b (on-start (change-direction-by-random -15 15)))])
                                (spawn random-bullet))]
            [(eq? fm 'spread) (let ([top-bullet    (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       (add-components _ (on-start (change-direction-by -10))
                                                                         #;(after-time 10 die)))]
                                    [middle-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       #;(add-components b (after-time 10 die)))]
                                    [bottom-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       (add-components b (on-start (change-direction-by 10))
                                                                     #;(after-time 10 die)))])
                                (do-many (spawn top-bullet)
                                         (spawn middle-bullet)
                                         (spawn bottom-bullet)))]) g e)))
-
-
-
