@@ -422,8 +422,6 @@
                   #:size size
                   #:components (cons c custom-components)))
 
-
-
 ;MISC from LPC
 
 ; ==== MISC SHEETS =====
@@ -476,6 +474,11 @@
                  #:columns    3
                  #:row-number 4
                  #:speed      3))
+
+(define chest-sprite
+  (new-sprite (crop 0 0
+                    32 32
+                    (bitmap "images/chests.png"))))
 
 
 ; ==== MISC ENTITIES =====
