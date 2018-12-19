@@ -17,6 +17,9 @@
          cooked-fish-sprite
          bowl-sprite
          toasted-marshmallow-sprite
+         smores-sprite
+         carrot-stew-sprite
+         fish-stew-sprite
          
          consumable)
  
