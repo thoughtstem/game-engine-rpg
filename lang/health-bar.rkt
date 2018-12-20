@@ -76,7 +76,9 @@
                     (counter 100)
                     (layer "ui")
                     (storage "efficient-health-bar" #t)
-                    (do-every starvation-period (maybe-change-health-by change-by #:max max))
+                    (if (eq? starvation-period #f)
+                        #f
+                        (do-every starvation-period (maybe-change-health-by change-by #:max max)))
                     (precompiler main-sprite
                                  bg-sprite)
                     ))
