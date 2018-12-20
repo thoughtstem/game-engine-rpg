@@ -4,26 +4,17 @@
          custom-weapon
          weapon-slot?
          weapon->turret
-         use-weapon-against-player
          weapon-backpack
          shoot
-         process-bullet
-         enemy-ai
-         weapon-selector
-         weapon-is?)
+         process-bullet)
 
 (require game-engine
          "./combat.rkt"
          "./health-bar.rkt")
 
-(define spear-sprite (bitmap "images/spear-sprite.png"))
-(define spear-bullet-sprite (bitmap "images/spear-bullet-sprite.png"))
-(define sword-sprite (bitmap "images/sword-sprite.png"))
-(define paint-thrower-sprite (bitmap "images/paint-thrower-sprite.png"))
-
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
-   ; (define tag 'bullet)
+    (define tag 'bullet)
     (define damage (damager-amount a-damager))
     (define bullet-hp (get-storage-data "durability-stat" an-entity))
     (define new-bullet-hp (- bullet-hp damage))
@@ -31,7 +22,7 @@
     (define new-bullet-speed (and (get-ai-speed an-entity)
                                   (/ (get-ai-speed an-entity) 2)))
     (displayln (~a "NEW BULLET HP: " new-bullet-hp))
-    (if (should-filter-out? a-damager tag ) ;(member tag (damager-tags a-damager))
+    (if (member tag (damager-tags a-damager))
         an-entity
         (~> an-entity
             (update-entity _ speed? (speed new-bullet-speed))
@@ -55,7 +46,6 @@
                   #:position   p
                   #:components (physical-collider)
                                (direction 0)
-                               (active-on-bg 0)
                                (damager dmg (list 'bullet))
                                (on-rule (λ(g e)
                                           (<= (get-storage-data "durability-stat" e) 0)) die)
@@ -82,28 +72,6 @@
   (list (storage "Weapon Slot" 1)
         (map slot->on-key (range 1 (add1 slots)))))
 
-(define (select-backpack-item num)
-  (lambda (g e)
-    (define backpack-list (get-backpack-entities e))
-    (define item-name (if (> (length backpack-list) num)
-                          (get-name (list-ref backpack-list num))
-                          #f))
-    (if item-name
-        (begin (displayln (~a "WEAPON SELECTED: " item-name))
-               ((set-storage-named "Selected Weapon" item-name) g e))
-        e)))
-
-(define (weapon-selector #:slots [slots 1])
-  (define (slot->on-key num)
-    (on-key num (select-backpack-item (sub1 num))))
-  (list (storage "Selected Weapon" "None")
-        (map slot->on-key (range 1 (add1 slots)))))
-
-(define (weapon-is? name)
-  (lambda (g e)
-    (define current-weapon (get-storage-data "Selected Weapon" e))
-    (eq? current-weapon name)))
-
 
 (define (custom-weapon #:slot              [slot #f]
                        #:bullet            [b (custom-bullet)]
@@ -111,20 +79,17 @@
                        #:fire-rate         [fr 3]
                        #:fire-key          [key 'f]
                        #:mouse-fire-button [button #f]
-                       #:rapid-fire?       [rf?     #t]
-                       #:rule              [rule (λ (g e) #t)])
+                       #:rapid-fire? [rf?     #t])
   (define fire-interval (max 1 (/ 30 fr)))
   (define fire-rule (if button
                         (and/r (mouse-button-is-down? button)
                                (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
-                                     (weapon-slot? slot))
-                               rule)
+                                     (weapon-slot? slot)))
                         (and/r (key-is-down? key)
                                (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
-                                     (weapon-slot? slot))
-                               rule)))
+                                     (weapon-slot? slot)))))
   (cond
     [(eq? rf?    #t) (if button
                          (do-every fire-interval #:rule fire-rule (shoot #:bullet (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
@@ -142,87 +107,27 @@
         [(on-mouse? c) (struct-copy struct-on-mouse c [rule (near? "Enemy" 120)])]
         ))
 
-(define (constant-fire g e)
-  #t)
-
-(define (add-bullet-damage-tag b t)
-  (update-entity b damager?
-                 (add-damager-tag (get-component b damager?) t)))
-
-
-
-
-(define (enemy-ai (machine #f))
-  (if machine
-      (on-start (λ(g e) (~> e
-                            (remove-component _ speed?)
-                            (entity-add-machine  machine))))
-      #f))
-
-
-
-
-
-;When enemies shoot bullets, this hacks the bullets immediately after they spawn
-;  and puts tags on them so they don't hurt the shooter.  (Don't want enemies shooting themselves)
-(define (use-weapon-against-player c)
-  (cond [(do-every? c) (struct-copy struct-do-every c
-                                    [rule (λ(g e) #t)]
-                                    [func (do-many
-                                           
-                                           (struct-do-every-func c)
-                                           
-                                           (λ(g e)
-
-                                             (define new-s (update-what-will-spawn (get-component e spawn-once?)
-                                                                                   (compose
-                                                                                    (curryr add-bullet-damage-tag 'enemy-team)
-                                                                                    (λ(e) (add-component e
-                                                                                                         (on-start (point-to "player"))))
-                                                                                    (λ(e)
-                                                                                      (update-entity e damage-processor?
-                                                                                       (damage-processor (process-bullet #:filter-out '(bullet enemy-team)))))
-                                                                                    )
-                                                                                   ))
-
-                                             (update-entity e spawn-once? new-s)))]
-                                    )]
-
-        ;Do i need these??
-        [(on-key?   c) (struct-copy struct-on-key   c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-key-f c))])]
-        [(on-mouse? c) (struct-copy struct-on-mouse c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-mouse-f c))])]))
-
-
-
 (define (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
   (lambda (g e)
-    ((cond [(eq? fm 'normal) (spawn-on-current-tile b )]
+    ((cond [(eq? fm 'normal) (spawn b )]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 5))
+                                                      (update-entity  _ speed? (speed 5))
                                                       (add-components _ (follow "Enemy")
                                                                         #;(after-time 1000 die)))])
-                               (spawn-on-current-tile homing-bullet))]
+                               (spawn homing-bullet))]
            [(eq? fm 'random) (let ([random-bullet (add-components b (on-start (change-direction-by-random -15 15)))])
-                               (spawn-on-current-tile random-bullet))]
+                               (spawn random-bullet))]
            [(eq? fm 'spread) (let ([top-bullet    (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       (add-components _ (on-start (change-direction-by -10))
                                                                         #;(after-time 10 die)))]
                                    [middle-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       #;(add-components b (after-time 10 die)))]
                                    [bottom-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
+                                                      (update-entity  _ speed? (speed 20))
                                                       (add-components b (on-start (change-direction-by 10))
                                                                     #;(after-time 10 die)))])
-
-                               (do-many (spawn-on-current-tile top-bullet)
-                                        (spawn-on-current-tile middle-bullet)
-                                        (spawn-on-current-tile bottom-bullet)))]) g e)))
-
+                               (do-many (spawn top-bullet)
+                                        (spawn middle-bullet)
+                                        (spawn bottom-bullet)))]) g e)))
