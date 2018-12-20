@@ -180,6 +180,7 @@
 
 
 (define (abstract-progress-bar #:color (color 'red)
+                               #:max   (m 100)
                                #:width (w 100)
                                #:height (h 10)
                                #:data-from data-from)
@@ -202,7 +203,7 @@
   (define (update-from-data g e)
     (define data (data-from g))
 
-    (define percentage (/ data 100)) ;This should div by max??
+    (define percentage (/ data m)) ;This should div by max??
 
     (if data
         (update-entity e

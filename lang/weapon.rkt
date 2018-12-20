@@ -17,6 +17,8 @@
          sword-bullet-sprite
          paint-thrower-sprite
          paint-sprite
+
+         custom-particles
          )
 
 (require game-engine
@@ -41,6 +43,39 @@
            (circle 6 "solid" "yellow")
            (circle 7 "solid" "magenta")))
 
+
+(define green-star (star 5 'solid 'green))
+(define (custom-particles
+         #:sprite (sprite green-star)
+         #:speed  (s 10)
+         #:scale-each-tick (scale-each-tick 1.01)
+         #:direction-min-max (dir '(0 360))
+         #:particle-time-to-live (ttl 100)
+         #:system-time-to-live (sttl 10))
+
+  (precompile! green-star)
+  
+  (define particle 
+    (sprite->entity sprite
+                    #:position (posn 0 0)
+                    #:name "particle"
+                    #:components
+                    (speed s)
+                    (direction 0)
+                    (every-tick (do-many
+                                 (move)
+                                 (scale-sprite scale-each-tick)))
+                    (on-start (random-direction (first dir)
+                                                (second dir)))
+                    (after-time ttl die)))
+
+  (sprite->entity empty-image
+                  #:position (posn 0 0)
+                  #:name "particle-system"
+                  #:components
+                  (every-tick (spawn-on-current-tile particle))
+                  (after-time sttl die)) )
+
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
    ; (define tag 'bullet)
@@ -56,7 +91,13 @@
         (~> an-entity
             (update-entity _ speed? (speed new-bullet-speed))
             (set-storage "durability-stat" _ new-bullet-hp)))))
-  
+
+(define (die-and-spawn e)
+  (do-many
+   (spawn-on-current-tile e)
+   (λ(g e)
+     (add-component e (after-time 2 die)))
+   ))
 
 (define (custom-bullet #:position   [p (posn 20 0)]
                        #:sprite     [s (rectangle 10 2 "solid" "green")]
@@ -64,9 +105,16 @@
                        #:damage     [dmg 10]
                        #:range      [rng 1000]
                        #:durability [dur 10]
+                       #:hit-particles  [hit-particles (custom-particles #:sprite (circle 2 'solid (make-color 0 255 0 255))
+                                                                         #:scale-each-tick 1
+                                                                         #:particle-time-to-live 2
+                                                                         #:system-time-to-live 5)]
                        #:rotation-style [rs 'face-direction]
                        #:components [c #f]
                                     . custom-components)
+
+
+  
   (combatant #:damage-processor (damage-processor (process-bullet #:filter-out 'bullet))
              #:stats (list (make-stat-config 'durability dur
                                              (no-progress-bar)
@@ -79,7 +127,8 @@
                                (active-on-bg 0)
                                (damager dmg (list 'bullet))
                                (on-rule (λ(g e)
-                                          (<= (get-storage-data "durability-stat" e) 0)) die)
+                                          (<= (get-storage-data "durability-stat" e) 0))
+                                        (die-and-spawn hit-particles))
                                (rotation-style rs)
                                (hidden)
                                (on-start show)
@@ -168,8 +217,11 @@
   #t)
 
 (define (add-bullet-damage-tag b t)
-  (update-entity b damager?
+  (if (not (get-component b damager?))
+      b
+      (update-entity b damager?
                  (add-damager-tag (get-component b damager?) t)))
+  )
 
 
 
@@ -187,38 +239,45 @@
 
 ;When enemies shoot bullets, this hacks the bullets immediately after they spawn
 ;  and puts tags on them so they don't hurt the shooter.  (Don't want enemies shooting themselves)
-(define (use-weapon-against-player c)
-  (cond [(do-every? c) (struct-copy struct-do-every c
-                                    [rule (λ(g e) #t)]
-                                    [func (do-many
+;Ultimate, this just returns a component that goes on an enemy and makes it fire at a
+; constant rate.
+;(More complex AI should use this component in a state machine.  Don't add AI in this function.  It's already gross enough.)
+(define (use-weapon-against-player c #:ticks-between-shots (ticks-between-shots 1))
+  ;We need to do some hacking to make a weapon suitable for an enemy to use.
+  ;  For example, certain things (like keyboard and mouse control) aren't necessary.
+  ;  We just need the fireing function
+  (define original-fire-function 
+    (cond [(do-every? c) (struct-do-every-func c)]
+          [(on-key?   c) (struct-on-key-f c)]
+          [(on-mouse? c) (struct-on-mouse-f c)]))
+
+  ;But we need to fix it a bit, so we can hack the bullet that gets spawned,
+  ;  point the bullet at the player.  Make it hostile to the player.  Etc.
+  (define new-fire-function
+    (do-many
                                            
-                                           (struct-do-every-func c)
+     original-fire-function
                                            
-                                           (λ(g e)
+     (λ(g e)
 
-                                             (define new-s (update-what-will-spawn (get-component e spawn-once?)
-                                                                                   (compose
-                                                                                    (curryr add-bullet-damage-tag 'enemy-team)
-                                                                                    (λ(e) (add-component e
-                                                                                                         (on-start (point-to "player"))))
-                                                                                    (λ(e)
-                                                                                      (update-entity e damage-processor?
-                                                                                       (damage-processor (process-bullet #:filter-out '(bullet enemy-team)))))
-                                                                                    )
-                                                                                   ))
+       (define new-s (update-what-will-spawn (get-component e spawn-once?)
+                                             (compose
+                                              (curryr add-bullet-damage-tag 'enemy-team)
+                                              (λ(e) (update-entity e posn? (posn 0 0)))
+                                              (λ(e) (add-component e
+                                                                   (on-start (point-to "player"))))
+                                              (λ(e)
+                                                (update-entity e damage-processor?
+                                                               (damage-processor (process-bullet #:filter-out '(bullet enemy-team)))))
+                                              )
+                                             ))
 
-                                             (update-entity e spawn-once? new-s)))]
-                                    )]
+       (update-entity e spawn-once? new-s))))
 
-        ;Do i need these??
-        [(on-key?   c) (struct-copy struct-on-key   c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-key-f c))])]
-        [(on-mouse? c) (struct-copy struct-on-mouse c
-                                    [f (do-many
-                                        (λ(g e) (displayln "HI") e)
-                                        (struct-on-mouse-f c))])]))
+  ;Just return a component that fires the weapon at
+  ;the appropriate rate.
+  ;(More complex AI should use this component in a state machine.  Don't add ai in this function)
+  (do-every ticks-between-shots new-fire-function))
 
 
 

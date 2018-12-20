@@ -169,7 +169,9 @@
          make-stat-config
          add-damager-tag
 
-         should-filter-out?)
+         should-filter-out?
+
+         default-health+shields-stats)
 
 (require game-engine)
 
@@ -374,14 +376,15 @@
 
 ;This is admittedly a mess, but this is what you would
 ; change to make a new kind of progress bar display
-(define (stat-progress-bar color #:offset (p (posn 0 -20)))
-  
-  
+(define (stat-progress-bar color
+                           #:max    (max 100)
+                           #:offset (p (posn 0 -20)))
   (λ(stat-name)
     (λ(find-combatant)
 
       (define (displayer data-source)
         (abstract-progress-bar #:color color
+                               #:max   max
                                #:height 5
                                #:width  20
                                #:data-from data-source))
@@ -402,6 +405,8 @@
        (add-component _ (lock-to find-combatant
                                  #:offset p))))))
 
+
+
 (define (no-progress-bar)
  (λ(stat-name)
     (λ(find-combatant)
@@ -414,10 +419,13 @@
        (add-component _ (lock-to find-combatant))))))
 
 
+(define (default-health+shields-stats health shields)
+  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -20)))
+        (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -15)))))
+
 (define/contract (combatant original-e
-                   #:damage-processor  (dp (simple-numeric-damage))
-                   #:stats (stats (list (make-stat-config 'health 100 (stat-progress-bar 'green #:offset (posn 0 -20)))
-                                        (make-stat-config 'shield 100 (stat-progress-bar 'blue  #:offset (posn 0 -15))))))
+                   #:damage-processor  (dp     (simple-numeric-damage))
+                   #:stats             (stats  (default-health+shields-stats 100 100)))
 
   (->* (entity?)
        (#:damage-processor damage-processor?
@@ -440,19 +448,28 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn (add-components b (active-on-bg 0)
-                                          (on-rule (λ (g e) (not (find-combatant g))) die)))
+       (on-start (spawn-on-current-tile (add-components b
+                                                        (active-on-bg) 
+                                                        (on-rule (λ (g e) (not (find-combatant g)))
+                                                                 
+                                                                 (do-many
+                                                                  die)
+
+
+                                                                 )))
                  ))
      bars))
   
   (define e-without-stats
     (add-components original-e
-                    (storage "combatant-id" combatant-id)
-                    (on-collide (has-component? damager?) take-damage) 
-                    on-start-spawn-bars
-                    dp))
+                    (flatten
+                     (list (storage "combatant-id" combatant-id)
+                           (on-collide (has-component? damager?) take-damage) 
+                           on-start-spawn-bars
+                           dp))))
 
- 
+
+
   (foldl
    (λ(n a)
      (init-stat (stat-config-name n) a (stat-config-starting-value n)))

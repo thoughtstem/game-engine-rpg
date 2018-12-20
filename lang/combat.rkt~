@@ -1,6 +1,6 @@
 #lang racket
 
-(require game-engine)
+
 
 
 (module+ test
@@ -12,7 +12,7 @@
                     #:name ""
                     #:position (posn 0 0)))
 
-  (define take-10-damage (damager 10))
+  (define take-10-damage (make-damager 10))
 
   
   (define (half x) (/ x 2))
@@ -52,6 +52,16 @@
                                    take-10-damage
                                    #:final-health 90
                                    "Taking 10 damage normally should give you 90 health"))
+
+
+  (let ()
+    (define player (combatant #:damage-processor (filter-damage-by-tag #:filter-out 'team-a)
+                               base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(team-a))
+                                   #:final-health 100
+                                   "Taking 10 damage from something 'on your team' should not remove health"))
 
 
   ;Combatants can start with a different level of health
@@ -111,6 +121,34 @@
     )
 
   ;Don't take friendly fire (from self)
+  (let ()
+    (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
+                                                                #:first-stat "shield"
+                                                                #:second-stat "health")
+                              base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(my-team bullet))
+                                   #:final-health 100
+                                   #:final-shield 100
+                                   (~a "Should not take friendly fire"))
+
+    )
+
+   ;Do take enemy fire 
+  (let ()
+    (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
+                                                                #:first-stat "shield"
+                                                                #:second-stat "health")
+                              base-player))
+
+    (check-combatant-takes-damage? player
+                                   (damager 10 '(enemy-team bullet))
+                                   #:final-health 100
+                                   #:final-shield 90
+                                   (~a "Should not take friendly fire"))
+
+    )
 
 
 
@@ -119,14 +157,28 @@
   )
 
 
+(provide combatant
+         divert-damage
+         (rename-out (make-damager damager))
+         damager-amount
+         damager-tags
+         damager?
+         damage-processor
+         damage-processor?
+         no-progress-bar
+         make-stat-config
+         add-damager-tag
 
-(require game-engine
-         game-engine-rpg
-         game-engine-demos-common)
+         should-filter-out?)
+
+(require game-engine)
 
 
-(struct damager          (amount))
+(struct damager          (amount tags) #:transparent)
 (struct damage-processor (f))
+
+(define (make-damager amount (tags '()))
+  (damager amount tags))
 
 (define (make-damage-processor f)
   (damage-processor f))
@@ -137,6 +189,26 @@
    (λ(g an-entity a-damager)
      (effect an-entity (- (adj (damager-amount a-damager)))))))
 
+(define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
+  (make-damage-processor
+   (λ(g an-entity a-damager)
+     (if (should-filter-out? a-damager tag )
+         an-entity
+         (effect an-entity (- (adj (damager-amount a-damager))))))))
+
+(define (should-filter-out? d tag)
+  (define tags (if (list? tag)
+                   tag
+                   (list tag)))
+
+  (define ret (ormap (curryr member (damager-tags d)) tags))
+
+  ret)
+
+(define (add-damager-tag d t)
+  (struct-copy damager d
+               [tags (cons t (damager-tags d))]))
+
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
 
@@ -145,7 +217,8 @@
 (define (divert-damage #:first-stat-protection  (adj1 identity)
                        #:first-stat             (stat1 "shield") 
                        #:second-stat-protection (adj2 identity)
-                       #:second-stat            (stat2 "health"))
+                       #:second-stat            (stat2 "health")
+                       #:filter-out             (tag #f))
 
   ;Wow, you can have contracts on an inner function...
   (define/contract (inner g an-entity a-damager)
@@ -158,7 +231,7 @@
     
     (define first-damage (adj1 (damager-amount a-damager)))
 
-    (displayln (~a "first-damage " first-damage))
+    ;(displayln (~a "first-damage " first-damage))
 
     (define first-stat-amount (get-stat stat1 an-entity))
 
@@ -166,12 +239,13 @@
 
     (define second-damage (adj2 leftover-damage))
 
-    (displayln (~a "second-damage " second-damage))
+    ;(displayln (~a "second-damage " second-damage))
 
-    (~> an-entity
-        (change-stat stat1 _ (- first-damage))
-        (change-stat stat2 _ (- second-damage))))
-
+    (if (should-filter-out? a-damager tag )
+         an-entity
+         (~> an-entity
+             (change-stat stat1 _ (- first-damage))
+             (change-stat stat2 _ (- second-damage)))))
 
   (make-damage-processor
    inner))
@@ -286,6 +360,11 @@
 
 
 
+(require game-engine
+         "./health-bar.rkt")
+
+
+
 (struct stat-config (name starting-value display-entity))
 
 (define (make-stat-config n (starting-value 100) (display-entity (stat-progress-bar 'red)))
@@ -323,6 +402,17 @@
        (add-component _ (lock-to find-combatant
                                  #:offset p))))))
 
+(define (no-progress-bar)
+ (λ(stat-name)
+    (λ(find-combatant)
+      (~>
+       (sprite->entity empty-image
+                       #:position (posn 0 0)
+                       #:name "null"
+                       #:components
+                       (on-start die))
+       (add-component _ (lock-to find-combatant))))))
+
 
 (define/contract (combatant original-e
                    #:damage-processor  (dp (simple-numeric-damage))
@@ -335,6 +425,8 @@
        combatant?)
 
   (define combatant-id (random 100000))
+
+
 
   (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
 
@@ -350,7 +442,10 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn b)))
+       (on-start (spawn-on-current-tile (add-components b
+                                                        (active-on-bg)
+                                                        (on-rule (λ (g e) (not (find-combatant g))) die)))
+                 ))
      bars))
   
   (define e-without-stats
