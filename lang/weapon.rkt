@@ -16,6 +16,11 @@
          "./combat.rkt"
          "./health-bar.rkt")
 
+(define spear-sprite (bitmap "images/spear-sprite.png"))
+(define spear-bullet-sprite (bitmap "images/spear-bullet-sprite.png"))
+(define sword-sprite (bitmap "images/sword-sprite.png"))
+(define paint-thrower-sprite (bitmap "images/paint-thrower-sprite.png"))
+
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
    ; (define tag 'bullet)
