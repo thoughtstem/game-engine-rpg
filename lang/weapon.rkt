@@ -10,7 +10,14 @@
          process-bullet
          enemy-ai
          weapon-selector
-         weapon-is?)
+         weapon-is?
+         spear-sprite
+         spear-bullet-sprite
+         sword-sprite
+         sword-bullet-sprite
+         paint-thrower-sprite
+         paint-sprite
+         )
 
 (require game-engine
          "./combat.rkt"
@@ -20,6 +27,19 @@
 (define spear-bullet-sprite (bitmap "images/spear-bullet-sprite.png"))
 (define sword-sprite (bitmap "images/sword-sprite.png"))
 (define paint-thrower-sprite (bitmap "images/paint-thrower-sprite.png"))
+
+(define sword-bullet-sprite
+  (rotate 90 (overlay/offset
+              (overlay/offset (rectangle 30 4 "solid" "gray")
+                              -8 0
+                              (rectangle 4 10 "solid" "darkgray"))
+              -30 0
+              (rectangle 30 10 "solid" "transparent"))))
+
+(define paint-sprite
+  (overlay (circle 5 "solid" "blue")
+           (circle 6 "solid" "yellow")
+           (circle 7 "solid" "magenta")))
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
@@ -44,6 +64,7 @@
                        #:damage     [dmg 10]
                        #:range      [rng 1000]
                        #:durability [dur 10]
+                       #:rotation-style [rs 'face-direction]
                        #:components [c #f]
                                     . custom-components)
   (combatant #:damage-processor (damage-processor (process-bullet #:filter-out 'bullet))
@@ -59,7 +80,7 @@
                                (damager dmg (list 'bullet))
                                (on-rule (λ(g e)
                                           (<= (get-storage-data "durability-stat" e) 0)) die)
-                               (rotation-style 'face-direction)
+                               (rotation-style rs)
                                (hidden)
                                (on-start show)
                                (speed spd)
@@ -125,6 +146,7 @@
                                (or/r (λ (g e) (eq? slot #f))
                                      (weapon-slot? slot))
                                rule)))
+  (precompile! b)
   (cond
     [(eq? rf?    #t) (if button
                          (do-every fire-interval #:rule fire-rule (shoot #:bullet (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
