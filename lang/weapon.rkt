@@ -14,9 +14,12 @@
          spear-sprite
          spear-bullet-sprite
          sword-sprite
-         sword-bullet-sprite
+         (rename-out (swinging-sword-sprite sword-bullet-sprite))
+         swinging-sword-sprite
+         flying-sword-sprite
          paint-thrower-sprite
          paint-sprite
+         flame-sprite
          )
 
 (require game-engine
@@ -28,18 +31,27 @@
 (define sword-sprite (bitmap "images/sword-sprite.png"))
 (define paint-thrower-sprite (bitmap "images/paint-thrower-sprite.png"))
 
-(define sword-bullet-sprite
-  (rotate 90 (overlay/offset
-              (overlay/offset (rectangle 30 4 "solid" "gray")
-                              -8 0
-                              (rectangle 4 10 "solid" "darkgray"))
-              -30 0
-              (rectangle 30 10 "solid" "transparent"))))
+(define swinging-sword-sprite
+  (rotate 90 (beside (rectangle 40 10 "solid" "transparent")
+                     (rectangle 8 4 "solid" "black")
+                     (rectangle 4 10 "solid" "black")
+                     (rectangle 28 4 "solid" "gray"))))
+
+(define flying-sword-sprite
+   (beside ;(rectangle 40 10 "solid" "transparent")
+    (rectangle 8 4 "solid" "black")
+    (rectangle 4 10 "solid" "black")
+    (rectangle 28 4 "solid" "gray")))
 
 (define paint-sprite
   (overlay (circle 5 "solid" "blue")
            (circle 6 "solid" "yellow")
            (circle 7 "solid" "magenta")))
+
+(define flame-sprite
+  (overlay (circle 5 "solid" "yellow")
+           (circle 6 "solid" "orange")
+           (circle 7 "solid" "red")))
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
