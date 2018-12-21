@@ -1,7 +1,7 @@
 #lang racket
 
-(provide custom-bullet
-         custom-weapon
+(provide (rename-out (custom-bullet custom-dart))
+         custom-weapon-system
          weapon-slot?
          weapon->turret
          use-weapon-against-player
@@ -11,29 +11,47 @@
          enemy-ai
          weapon-selector
          weapon-is?
-         spear-sprite
-         spear-bullet-sprite
-         sword-sprite
-         (rename-out (swinging-sword-sprite sword-bullet-sprite))
-         swinging-sword-sprite
-         flying-sword-sprite
-         paint-thrower-sprite
-         paint-sprite
+
          custom-particles
+         
+         (rename-out (spear-sprite spear-bullet-sprite))
+         (rename-out (SWORD-ICON sword-sprite))
+         (rename-out (swinging-sword-sprite sword-bullet-sprite))
+         (rename-out (PAINT-THROWER-ICON paint-thrower-sprite))
+         
+         spear-sprite
+         swinging-sword-sprite
+         paint-sprite
+         flying-sword-sprite
          flame-sprite
+
+         SPEAR-ICON
+         SWORD-ICON
+         PAINT-THROWER-ICON
+         FLYING-DAGGER-ICON
+         RING-OF-FIRE-ICON
          )
 
 (require game-engine
          "./combat.rkt"
          "./health-bar.rkt")
 
-(define spear-sprite (bitmap "images/spear-sprite.png"))
-(define spear-bullet-sprite (bitmap "images/spear-bullet-sprite.png"))
-(define sword-sprite (bitmap "images/sword-sprite.png"))
-(define paint-thrower-sprite (bitmap "images/paint-thrower-sprite.png"))
+(define SPEAR-ICON         (bitmap "images/spear-sprite.png"))
+(define SWORD-ICON         (bitmap "images/sword-sprite.png"))
+(define PAINT-THROWER-ICON (bitmap "images/paint-thrower-sprite.png"))
+(define FLYING-DAGGER-ICON
+  (overlay (text "FD" 20 "black")
+         (square 28 "solid" "purple")
+         (square 32 "solid" "cyan")))
+(define RING-OF-FIRE-ICON
+  (overlay (text "RoF" 14 "black")
+           (square 28 "solid" "yellow")
+           (square 32 "solid" "cyan")))
+
+(define spear-sprite  (bitmap "images/spear-bullet-sprite.png"))
 
 (define swinging-sword-sprite
-  (rotate 90 (beside (rectangle 40 10 "solid" "transparent")
+  (rotate 90 (beside (rectangle 40 40 "solid" "transparent")
                      (rectangle 8 4 "solid" "black")
                      (rectangle 4 10 "solid" "black")
                      (rectangle 28 4 "solid" "gray"))))
@@ -48,6 +66,11 @@
   (overlay (circle 5 "solid" "blue")
            (circle 6 "solid" "yellow")
            (circle 7 "solid" "magenta")))
+
+(define flame-sprite
+  (overlay (circle 5 "solid" "yellow")
+           (circle 6 "solid" "orange")
+           (circle 7 "solid" "red")))
 
 
 (define green-star (star 5 'solid 'green))
@@ -81,11 +104,6 @@
                   #:components
                   (every-tick (spawn-on-current-tile particle))
                   (after-time sttl die)) )
-
-(define flame-sprite
-  (overlay (circle 5 "solid" "yellow")
-           (circle 6 "solid" "orange")
-           (circle 7 "solid" "red")))
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
@@ -186,14 +204,14 @@
     (eq? current-weapon name)))
 
 
-(define (custom-weapon #:slot              [slot #f]
-                       #:bullet            [b (custom-bullet)]
-                       #:fire-mode         [fm 'normal]
-                       #:fire-rate         [fr 3]
-                       #:fire-key          [key 'f]
-                       #:mouse-fire-button [button #f]
-                       #:rapid-fire?       [rf?     #t]
-                       #:rule              [rule (λ (g e) #t)])
+(define (custom-weapon-system #:slot              [slot #f]
+                                 #:dart            [b (custom-bullet)]
+                                 #:fire-mode         [fm 'normal]
+                                 #:fire-rate         [fr 3]
+                                 #:fire-key          [key 'f]
+                                 #:mouse-fire-button [button #f]
+                                 #:rapid-fire?       [rf?     #t]
+                                 #:rule              [rule (λ (g e) #t)])
   (define fire-interval (max 1 (/ 30 fr)))
   (define fire-rule (if button
                         (and/r (mouse-button-is-down? button)
