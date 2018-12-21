@@ -197,12 +197,10 @@
   (define fire-interval (max 1 (/ 30 fr)))
   (define fire-rule (if button
                         (and/r (mouse-button-is-down? button)
-                               (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
                                      (weapon-slot? slot))
                                rule)
                         (and/r (key-is-down? key)
-                               (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
                                      (weapon-slot? slot))
                                rule)))

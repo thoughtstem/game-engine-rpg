@@ -144,7 +144,11 @@
     ((do-many (set-counter new-health)
               (update-health-bar #:max max-val)) g e)))
 
-(define (health-is-zero? g e)
+(define/contract (health-is-zero? g e)
+  (-> (and/c (game-has-entity-named/c "health"))
+      entity?
+      entity?)
+  
   (define player-health (get-counter (get-entity "health" g)))
   ;(displayln (~a "Player health: " player-health))
   (<= player-health 0)
