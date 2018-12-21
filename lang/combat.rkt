@@ -167,6 +167,7 @@
          damage-processor?
          no-progress-bar
          make-stat-config
+         stat-progress-bar
          add-damager-tag
 
          should-filter-out?
@@ -189,7 +190,13 @@
 (define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity))
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (effect an-entity (- (adj (damager-amount a-damager)))))))
+     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                             #:scale-each-tick 1
+                                             #:particle-time-to-live 2
+                                             #:system-time-to-live 5))
+     (~> an-entity
+         ((spawn-on-current-tile hit-particles) g _)
+         (effect _ (- (adj (damager-amount a-damager))))))))
 
 (define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
   (make-damage-processor
@@ -241,11 +248,15 @@
 
     (define second-damage (adj2 leftover-damage))
 
-    ;(displayln (~a "second-damage " second-damage))
-
+    ;(displayln (~a "second-damage " second-damage))\
+    (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                            #:scale-each-tick 1
+                                            #:particle-time-to-live 2
+                                            #:system-time-to-live 5))
     (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
              (change-stat stat1 _ (- first-damage))
              (change-stat stat2 _ (- second-damage)))))
 
