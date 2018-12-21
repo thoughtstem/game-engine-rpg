@@ -135,7 +135,7 @@
 
     )
 
-   ;Do take enemy fire 
+  ;Do take enemy fire 
   (let ()
     (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
                                                                 #:first-stat "shield"
@@ -146,15 +146,7 @@
                                    (damager 10 '(enemy-team bullet))
                                    #:final-health 100
                                    #:final-shield 90
-                                   (~a "Should not take friendly fire"))
-
-    )
-
-
-
-  
-  
-  )
+                                   (~a "Should not take friendly fire")) ))
 
 
 (provide combatant
@@ -440,7 +432,7 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
+  (define find-combatant (curry fast-entity-with-storage "combatant-id" combatant-id))
 
   ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
 
