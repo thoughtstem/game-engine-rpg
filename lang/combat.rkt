@@ -135,7 +135,7 @@
 
     )
 
-   ;Do take enemy fire 
+  ;Do take enemy fire 
   (let ()
     (define player (combatant #:damage-processor (divert-damage #:filter-out '(my-team fire-damage)
                                                                 #:first-stat "shield"
@@ -146,15 +146,7 @@
                                    (damager 10 '(enemy-team bullet))
                                    #:final-health 100
                                    #:final-shield 90
-                                   (~a "Should not take friendly fire"))
-
-    )
-
-
-
-  
-  
-  )
+                                   (~a "Should not take friendly fire")) ))
 
 
 (provide combatant
@@ -172,7 +164,8 @@
 
          should-filter-out?
 
-         default-health+shields-stats)
+         default-health+shields-stats
+         stat-progress-bar)
 
 (require game-engine)
 
@@ -389,15 +382,19 @@
 ; change to make a new kind of progress bar display
 (define (stat-progress-bar color
                            #:max    (max 100)
-                           #:offset (p (posn 0 -20)))
+                           #:offset (p (posn 0 -20))
+                           #:width (w 20)
+                           #:height (h 5)
+                           #:after (f identity) ;For modifying the entity, e.g. removing lock-to?
+                           )
   (λ(stat-name)
     (λ(find-combatant)
 
       (define (displayer data-source)
         (abstract-progress-bar #:color color
                                #:max   max
-                               #:height 5
-                               #:width  20
+                               #:height h
+                               #:width  w
                                #:data-from data-source))
       
       (define (safe-get-stat n e)
@@ -411,10 +408,11 @@
               (find-combatant _)
               (safe-get-stat stat-name _))))
     
-      (~>
-       (displayer data-source)
-       (add-component _ (lock-to find-combatant
-                                 #:offset p))))))
+      (f
+       (~>
+        (displayer data-source)
+        (add-component _ (lock-to find-combatant
+                                  #:offset p)))))))
 
 
 
@@ -431,8 +429,8 @@
 
 
 (define (default-health+shields-stats health shields)
-  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -20)))
-        (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -15)))))
+  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -15)))
+        (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -20)))))
 
 (define/contract (combatant original-e
                    #:damage-processor  (dp     (simple-numeric-damage))
@@ -445,7 +443,7 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
+  (define find-combatant (curry fast-entity-with-storage "combatant-id" combatant-id))
 
   ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
 

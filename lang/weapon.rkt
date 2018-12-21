@@ -180,22 +180,20 @@
 
 
 (define (custom-weapon-system #:slot              [slot #f]
-                                 #:dart            [b (custom-bullet)]
-                                 #:fire-mode         [fm 'normal]
-                                 #:fire-rate         [fr 3]
-                                 #:fire-key          [key 'f]
-                                 #:mouse-fire-button [button #f]
-                                 #:rapid-fire?       [rf?     #t]
-                                 #:rule              [rule (λ (g e) #t)])
+                              #:dart              [b (custom-bullet)]
+                              #:fire-mode         [fm 'normal]
+                              #:fire-rate         [fr 3]
+                              #:fire-key          [key 'f]
+                              #:mouse-fire-button [button #f]
+                              #:rapid-fire?       [rf?     #t]
+                              #:rule              [rule (λ (g e) #t)])
   (define fire-interval (max 1 (/ 30 fr)))
   (define fire-rule (if button
                         (and/r (mouse-button-is-down? button)
-                               (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
                                      (weapon-slot? slot))
                                rule)
                         (and/r (key-is-down? key)
-                               (not/r health-is-zero?)
                                (or/r (λ (g e) (eq? slot #f))
                                      (weapon-slot? slot))
                                rule)))
