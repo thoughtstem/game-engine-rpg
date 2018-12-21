@@ -109,7 +109,7 @@
                        #:damage     [dmg 10]
                        #:range      [rng 1000]
                        #:durability [dur 10]
-                       #:hit-particles  [hit-particles (custom-particles #:sprite (square 2 'solid (make-color 255 200 0 255))
+                       #:hit-particles  [hit-particles (custom-particles #:sprite (square 2 'solid (make-color 0 255 0 255))
                                                                          #:scale-each-tick 1
                                                                          #:particle-time-to-live 2
                                                                          #:system-time-to-live 5)]
@@ -129,10 +129,12 @@
                   #:components (physical-collider)
                                (direction 0)
                                (active-on-bg 0)
-                               (damager dmg (list 'bullet))
+                               (damager dmg (list 'bullet 'friendly-team))
                                (on-rule (λ(g e)
                                           (<= (get-storage-data "durability-stat" e) 0))
-                                        (die-and-spawn hit-particles))
+                                        ;(die-and-spawn hit-particles)
+                                        die
+                                        )
                                (rotation-style rs)
                                (hidden)
                                (on-start show)
@@ -222,7 +224,9 @@
   (if (not (get-component b damager?))
       b
       (update-entity b damager?
-                 (add-damager-tag (get-component b damager?) t)))
+                         (~> (get-component b damager?)
+                             (remove-damager-tag _ 'friendly-team)
+                             (add-damager-tag _ t))))
   )
 
 

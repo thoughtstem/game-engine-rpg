@@ -161,6 +161,7 @@
          make-stat-config
          stat-progress-bar
          add-damager-tag
+         remove-damager-tag
 
          should-filter-out?
 
@@ -194,9 +195,15 @@
 (define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
   (make-damage-processor
    (λ(g an-entity a-damager)
+     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                             #:scale-each-tick 1
+                                             #:particle-time-to-live 2
+                                             #:system-time-to-live 5))
      (if (should-filter-out? a-damager tag )
          an-entity
-         (effect an-entity (- (adj (damager-amount a-damager))))))))
+         (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
+             (effect _ (- (adj (damager-amount a-damager)))))))))
 
 (define (should-filter-out? d tag)
   (define tags (if (list? tag)
@@ -210,6 +217,10 @@
 (define (add-damager-tag d t)
   (struct-copy damager d
                [tags (cons t (damager-tags d))]))
+
+(define (remove-damager-tag d t)
+  (struct-copy damager d
+               [tags (filter-not (curry eq? t) (damager-tags d))]))
 
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
@@ -443,7 +454,7 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry fast-entity-with-storage "combatant-id" combatant-id))
+  (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
 
   ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
 
@@ -457,7 +468,9 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn-on-current-tile (add-components b
+       (if (eq? (get-name b) "null")
+           #f
+           (on-start (spawn-on-current-tile (add-components b
                                                         (active-on-bg) 
                                                         (on-rule (λ (g e) (not (find-combatant g)))
                                                                  
@@ -466,7 +479,7 @@
 
 
                                                                  )))
-                 ))
+                 )))
      bars))
   
   (define e-without-stats
