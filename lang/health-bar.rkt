@@ -195,13 +195,14 @@
                           (set-x-scale w _)
                           (set-y-scale h _)))
   (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
-  (precompile! bg-image)
+  ;(precompile! bg-image)
   
 
-  (define bg-sprite (~> bg-image
-                        (new-sprite _ #:animate #f)
-                        (set-x-scale (+ 2 w) _)
-                        (set-y-scale (+ 2 h) _)))
+  (define bg-sprite
+    (~> bg-image
+        (new-sprite _ #:animate #f)
+        (set-x-scale (+ 2 w) _)
+        (set-y-scale (+ 2 h) _)))
 
 
   (define (update-from-data g e)

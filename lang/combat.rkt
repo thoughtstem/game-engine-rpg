@@ -384,7 +384,8 @@
                                #:max   max
                                #:height h
                                #:width  w
-                               #:data-from data-source))
+                               #:data-from data-source
+                               ))
       
       (define (safe-get-stat n e)
         (if e
@@ -421,6 +422,8 @@
   (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -15)))
         (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -20)))))
 
+
+
 (define/contract (combatant original-e
                    #:damage-processor  (dp     (simple-numeric-damage))
                    #:stats             (stats  (default-health+shields-stats 100 100)))
@@ -432,10 +435,26 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry fast-entity-with-storage "combatant-id" combatant-id))
+  (displayln (~a "REGISTERING COMBATANT WITH ENTITY ID: "
+                   (get-id original-e) " "
+                   (entity-id original-e)))
+ 
+  (define find-combatant #;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
+    (λ(g)
+      #;(displayln (~a "finding combatant " ))
 
-  ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
+      ;Old, slow way
+      #;(current-version-of original-e g)
 
+
+      ;New, faster way?  Wait... seems to be broken, not sure why...
+      (find-entity-by-id (entity-id original-e) g)
+
+      ;Very fast.  But totally broken.  (Health bars end up destroying themselves, so it's fast because
+      ; they aren't there.
+      #;#f
+
+      ))
 
   (define bars
     (map
