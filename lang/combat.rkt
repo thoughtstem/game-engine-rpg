@@ -159,7 +159,9 @@
          damage-processor?
          no-progress-bar
          make-stat-config
+         stat-progress-bar
          add-damager-tag
+         remove-damager-tag
 
          should-filter-out?
 
@@ -182,14 +184,26 @@
 (define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity))
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (effect an-entity (- (adj (damager-amount a-damager)))))))
+     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                             #:scale-each-tick 1
+                                             #:particle-time-to-live 2
+                                             #:system-time-to-live 5))
+     (~> an-entity
+         ((spawn-on-current-tile hit-particles) g _)
+         (effect _ (- (adj (damager-amount a-damager))))))))
 
 (define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
   (make-damage-processor
    (λ(g an-entity a-damager)
+     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                             #:scale-each-tick 1
+                                             #:particle-time-to-live 2
+                                             #:system-time-to-live 5))
      (if (should-filter-out? a-damager tag )
          an-entity
-         (effect an-entity (- (adj (damager-amount a-damager))))))))
+         (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
+             (effect _ (- (adj (damager-amount a-damager)))))))))
 
 (define (should-filter-out? d tag)
   (define tags (if (list? tag)
@@ -203,6 +217,10 @@
 (define (add-damager-tag d t)
   (struct-copy damager d
                [tags (cons t (damager-tags d))]))
+
+(define (remove-damager-tag d t)
+  (struct-copy damager d
+               [tags (filter-not (curry eq? t) (damager-tags d))]))
 
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
@@ -234,11 +252,15 @@
 
     (define second-damage (adj2 leftover-damage))
 
-    ;(displayln (~a "second-damage " second-damage))
-
+    ;(displayln (~a "second-damage " second-damage))\
+    (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                            #:scale-each-tick 1
+                                            #:particle-time-to-live 2
+                                            #:system-time-to-live 5))
     (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
              (change-stat stat1 _ (- first-damage))
              (change-stat stat2 _ (- second-damage)))))
 
@@ -435,10 +457,6 @@
 
   (define combatant-id (random 100000))
 
-  (displayln (~a "REGISTERING COMBATANT WITH ENTITY ID: "
-                   (get-id original-e) " "
-                   (entity-id original-e)))
- 
   (define find-combatant #;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
     (λ(g)
       #;(displayln (~a "finding combatant " ))
@@ -450,9 +468,6 @@
       ;New, faster way?  Wait... seems to be broken, not sure why...
       (find-entity-by-id (entity-id original-e) g)
 
-      ;Very fast.  But totally broken.  (Health bars end up destroying themselves, so it's fast because
-      ; they aren't there.
-      #;#f
 
       ))
 
@@ -465,7 +480,9 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn-on-current-tile (add-components b
+       (if (eq? (get-name b) "null")
+           #f
+           (on-start (spawn-on-current-tile (add-components b
                                                         (active-on-bg) 
                                                         (on-rule (λ (g e) (not (find-combatant g)))
                                                                  
@@ -474,7 +491,7 @@
 
 
                                                                  )))
-                 ))
+                 )))
      bars))
   
   (define e-without-stats

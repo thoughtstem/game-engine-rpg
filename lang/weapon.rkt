@@ -12,7 +12,7 @@
          weapon-selector
          weapon-is?
 
-         custom-particles
+         ;custom-particles
          
          (rename-out (spear-sprite spear-bullet-sprite))
          (rename-out (SWORD-ICON sword-sprite))
@@ -73,40 +73,14 @@
            (circle 7 "solid" "red")))
 
 
-(define green-star (star 5 'solid 'green))
-(define (custom-particles
-         #:sprite (sprite green-star)
-         #:speed  (s 10)
-         #:scale-each-tick (scale-each-tick 1.01)
-         #:direction-min-max (dir '(0 360))
-         #:particle-time-to-live (ttl 100)
-         #:system-time-to-live (sttl 10))
 
-  (precompile! green-star)
-  
-  (define particle 
-    (sprite->entity sprite
-                    #:position (posn 0 0)
-                    #:name "particle"
-                    #:components
-                    (speed s)
-                    (direction 0)
-                    (every-tick (do-many
-                                 (move)
-                                 (scale-sprite scale-each-tick)))
-                    (on-start (random-direction (first dir)
-                                                (second dir)))
-                    (after-time ttl die)))
-
-  (sprite->entity empty-image
-                  #:position (posn 0 0)
-                  #:name "particle-system"
-                  #:components
-                  (every-tick (spawn-on-current-tile particle))
-                  (after-time sttl die)) )
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
+    #;(define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                            #:scale-each-tick 1
+                                            #:particle-time-to-live 2
+                                            #:system-time-to-live 5))
    ; (define tag 'bullet)
     (define damage (damager-amount a-damager))
     (define bullet-hp (get-storage-data "durability-stat" an-entity))
@@ -118,6 +92,7 @@
     (if (should-filter-out? a-damager tag ) ;(member tag (damager-tags a-damager))
         an-entity
         (~> an-entity
+            ;((spawn-on-current-tile hit-particles) g _) ; looks odd at center of large bullets (ie spear)
             (update-entity _ speed? (speed new-bullet-speed))
             (set-storage "durability-stat" _ new-bullet-hp)))))
 
@@ -134,7 +109,7 @@
                        #:damage     [dmg 10]
                        #:range      [rng 1000]
                        #:durability [dur 10]
-                       #:hit-particles  [hit-particles (custom-particles #:sprite (circle 2 'solid (make-color 0 255 0 255))
+                       #:hit-particles  [hit-particles (custom-particles #:sprite (square 2 'solid (make-color 0 255 0 255))
                                                                          #:scale-each-tick 1
                                                                          #:particle-time-to-live 2
                                                                          #:system-time-to-live 5)]
@@ -154,10 +129,12 @@
                   #:components (physical-collider)
                                (direction 0)
                                (active-on-bg 0)
-                               (damager dmg (list 'bullet))
+                               (damager dmg (list 'bullet 'friendly-team))
                                (on-rule (λ(g e)
                                           (<= (get-storage-data "durability-stat" e) 0))
-                                        (die-and-spawn hit-particles))
+                                        ;(die-and-spawn hit-particles)
+                                        die
+                                        )
                                (rotation-style rs)
                                (hidden)
                                (on-start show)
@@ -247,7 +224,9 @@
   (if (not (get-component b damager?))
       b
       (update-entity b damager?
-                 (add-damager-tag (get-component b damager?) t)))
+                         (~> (get-component b damager?)
+                             (remove-damager-tag _ 'friendly-team)
+                             (add-damager-tag _ t))))
   )
 
 
