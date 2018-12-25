@@ -166,7 +166,9 @@
          should-filter-out?
 
          default-health+shields-stats
-         stat-progress-bar)
+         stat-progress-bar
+
+         default-combat-particles)
 
 (require game-engine)
 
@@ -180,14 +182,15 @@
 (define (make-damage-processor f)
   (damage-processor f))
 
+(define default-combat-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                                   #:scale-each-tick 1
+                                                   #:particle-time-to-live 2
+                                                   #:system-time-to-live 5))
 
 (define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity))
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
-                                             #:scale-each-tick 1
-                                             #:particle-time-to-live 2
-                                             #:system-time-to-live 5))
+     (define hit-particles default-combat-particles)
      (~> an-entity
          ((spawn-on-current-tile hit-particles) g _)
          (effect _ (- (adj (damager-amount a-damager))))))))
@@ -423,8 +426,10 @@
       (f
        (~>
         (displayer data-source)
+        (add-component _ (active-on-bg))
         (add-component _ (lock-to find-combatant
-                                  #:offset p)))))))
+                                  #:offset p))))
+      )))
 
 
 
@@ -466,10 +471,7 @@
 
 
       ;New, faster way?  Wait... seems to be broken, not sure why...
-      (find-entity-by-id (entity-id original-e) g)
-
-
-      ))
+      (find-entity-by-id (entity-id original-e) g)))
 
   (define bars
     (map
@@ -483,8 +485,7 @@
        (if (eq? (get-name b) "null")
            #f
            (on-start (spawn-on-current-tile (add-components b
-                                                        (active-on-bg) 
-                                                        (on-rule (λ (g e) (not (find-combatant g)))
+                                                         (on-rule (λ (g e) (not (find-combatant g)))
                                                                  
                                                                  (do-many
                                                                   die)

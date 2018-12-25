@@ -225,7 +225,7 @@
                     (layer "ui")
                     (precompiler main-sprite
                                  bg-sprite)
-                    (every-tick  update-from-data)
+                    (do-every 20 update-from-data)
                     ))
 
   (add-component e main-sprite)
