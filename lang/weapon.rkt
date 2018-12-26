@@ -30,6 +30,8 @@
          PAINT-THROWER-ICON
          FLYING-DAGGER-ICON
          RING-OF-FIRE-ICON
+
+         make-icon
          )
 
 (require game-engine
@@ -47,6 +49,12 @@
   (overlay (text "RoF" 14 "black")
            (square 28 "solid" "yellow")
            (square 32 "solid" "cyan")))
+
+(define (make-icon t [c1 "yellow"] [c2 "black"])
+  (overlay (text t 16 "black")
+         (square 28 "solid" c1)
+         (square 32 "solid" c2)))
+  
 
 (define spear-sprite  (bitmap "images/spear-bullet-sprite.png"))
 

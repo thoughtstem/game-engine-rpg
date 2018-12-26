@@ -154,7 +154,7 @@
   (<= player-health 0)
   )
 
-(define (draw-counter-rpg #:prefix [prefix ""])
+(define (draw-counter-rpg #:prefix [prefix ""] #:exact-floor? [ef? #f])
   (lambda (g e)
     (define count (get-counter e))
 
@@ -164,7 +164,8 @@
 
     (update-entity e
                    (is-component? current-sprite)
-                   (set-text (~a prefix count) current-sprite))
+                   (set-text (~a prefix (if ef? (exact-floor count)
+                                            count)) current-sprite))
     ))
 
 (define (remove-on-key g e)
