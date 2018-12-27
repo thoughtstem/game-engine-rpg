@@ -147,7 +147,7 @@
 (define/contract (health-is-zero? g e)
   (-> (and/c (game-has-entity-named/c "health"))
       entity?
-      entity?)
+      boolean?)
   
   (define player-health (get-counter (get-entity "health" g)))
   ;(displayln (~a "Player health: " player-health))
