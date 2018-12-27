@@ -147,14 +147,14 @@
 (define/contract (health-is-zero? g e)
   (-> (and/c (game-has-entity-named/c "health"))
       entity?
-      entity?)
+      boolean?)
   
   (define player-health (get-counter (get-entity "health" g)))
   ;(displayln (~a "Player health: " player-health))
   (<= player-health 0)
   )
 
-(define (draw-counter-rpg #:prefix [prefix ""])
+(define (draw-counter-rpg #:prefix [prefix ""] #:exact-floor? [ef? #f])
   (lambda (g e)
     (define count (get-counter e))
 
@@ -164,7 +164,8 @@
 
     (update-entity e
                    (is-component? current-sprite)
-                   (set-text (~a prefix count) current-sprite))
+                   (set-text (~a prefix (if ef? (exact-floor count)
+                                            count)) current-sprite))
     ))
 
 (define (remove-on-key g e)
@@ -195,13 +196,14 @@
                           (set-x-scale w _)
                           (set-y-scale h _)))
   (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
-  (precompile! bg-image)
+  ;(precompile! bg-image)
   
 
-  (define bg-sprite (~> bg-image
-                        (new-sprite _ #:animate #f)
-                        (set-x-scale (+ 2 w) _)
-                        (set-y-scale (+ 2 h) _)))
+  (define bg-sprite
+    (~> bg-image
+        (new-sprite _ #:animate #f)
+        (set-x-scale (+ 2 w) _)
+        (set-y-scale (+ 2 h) _)))
 
 
   (define (update-from-data g e)
@@ -224,7 +226,7 @@
                     (layer "ui")
                     (precompiler main-sprite
                                  bg-sprite)
-                    (every-tick  update-from-data)
+                    (do-every 20 update-from-data)
                     ))
 
   (add-component e main-sprite)

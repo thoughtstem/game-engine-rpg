@@ -159,12 +159,16 @@
          damage-processor?
          no-progress-bar
          make-stat-config
+         stat-progress-bar
          add-damager-tag
+         remove-damager-tag
 
          should-filter-out?
 
          default-health+shields-stats
-         stat-progress-bar)
+         stat-progress-bar
+
+         default-combat-particles)
 
 (require game-engine)
 
@@ -178,18 +182,31 @@
 (define (make-damage-processor f)
   (damage-processor f))
 
+(define default-combat-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                                   #:scale-each-tick 1
+                                                   #:particle-time-to-live 2
+                                                   #:system-time-to-live 5))
 
 (define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity))
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (effect an-entity (- (adj (damager-amount a-damager)))))))
+     (define hit-particles default-combat-particles)
+     (~> an-entity
+         ((spawn-on-current-tile hit-particles) g _)
+         (effect _ (- (adj (damager-amount a-damager))))))))
 
 (define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
   (make-damage-processor
    (λ(g an-entity a-damager)
+     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                             #:scale-each-tick 1
+                                             #:particle-time-to-live 2
+                                             #:system-time-to-live 5))
      (if (should-filter-out? a-damager tag )
          an-entity
-         (effect an-entity (- (adj (damager-amount a-damager))))))))
+         (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
+             (effect _ (- (adj (damager-amount a-damager)))))))))
 
 (define (should-filter-out? d tag)
   (define tags (if (list? tag)
@@ -203,6 +220,10 @@
 (define (add-damager-tag d t)
   (struct-copy damager d
                [tags (cons t (damager-tags d))]))
+
+(define (remove-damager-tag d t)
+  (struct-copy damager d
+               [tags (filter-not (curry eq? t) (damager-tags d))]))
 
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
@@ -234,11 +255,15 @@
 
     (define second-damage (adj2 leftover-damage))
 
-    ;(displayln (~a "second-damage " second-damage))
-
+    ;(displayln (~a "second-damage " second-damage))\
+    (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+                                            #:scale-each-tick 1
+                                            #:particle-time-to-live 2
+                                            #:system-time-to-live 5))
     (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
+             ((spawn-on-current-tile hit-particles) g _)
              (change-stat stat1 _ (- first-damage))
              (change-stat stat2 _ (- second-damage)))))
 
@@ -384,7 +409,8 @@
                                #:max   max
                                #:height h
                                #:width  w
-                               #:data-from data-source))
+                               #:data-from data-source
+                               ))
       
       (define (safe-get-stat n e)
         (if e
@@ -400,8 +426,10 @@
       (f
        (~>
         (displayer data-source)
+        (add-component _ (active-on-bg))
         (add-component _ (lock-to find-combatant
-                                  #:offset p)))))))
+                                  #:offset p))))
+      )))
 
 
 
@@ -421,6 +449,8 @@
   (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -15)))
         (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -20)))))
 
+
+
 (define/contract (combatant original-e
                    #:damage-processor  (dp     (simple-numeric-damage))
                    #:stats             (stats  (default-health+shields-stats 100 100)))
@@ -432,10 +462,17 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
+  (define find-combatant #;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
+    (λ(g)
+      #;(displayln (~a "finding combatant " ))
 
-  ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
+      ;Old, slow way
+      #;(current-version-of original-e g)
 
+
+
+      ;New, faster way?  Wait... seems to be broken, not sure why...
+      (find-entity-by-id (entity-id original-e) g)))
 
   (define bars
     (map
@@ -446,16 +483,17 @@
   (define on-start-spawn-bars
     (map
      (λ(b)
-       (on-start (spawn-on-current-tile (add-components b
-                                                        (active-on-bg) 
-                                                        (on-rule (λ (g e) (not (find-combatant g)))
+       (if (eq? (get-name b) "null")
+           #f
+           (on-start (spawn-on-current-tile (add-components b
+                                                         (on-rule (λ (g e) (not (find-combatant g)))
                                                                  
                                                                  (do-many
                                                                   die)
 
 
                                                                  )))
-                 ))
+                 )))
      bars))
   
   (define e-without-stats
