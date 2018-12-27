@@ -5,6 +5,7 @@
          weapon-slot?
          weapon->turret
          use-weapon-against-player
+         use-weapon-against
          weapon-backpack
          shoot
          process-bullet
@@ -256,7 +257,11 @@
 ;Ultimate, this just returns a component that goes on an enemy and makes it fire at a
 ; constant rate.
 ;(More complex AI should use this component in a state machine.  Don't add AI in this function.  It's already gross enough.)
-(define (use-weapon-against-player c #:ticks-between-shots (ticks-between-shots 1))
+(define/contract (use-weapon-against-player c #:ticks-between-shots (ticks-between-shots 1))
+  (->* ((or/c do-every? on-key? on-mouse?))
+       (#:ticks-between-shots number?)
+       do-every?)
+
   ;We need to do some hacking to make a weapon suitable for an enemy to use.
   ;  For example, certain things (like keyboard and mouse control) aren't necessary.
   ;  We just need the fireing function
@@ -288,11 +293,59 @@
 
        (update-entity e spawn-once? new-s))))
 
+  
+
   ;Just return a component that fires the weapon at
   ;the appropriate rate.
   ;(More complex AI should use this component in a state machine.  Don't add ai in this function)
   (do-every ticks-between-shots new-fire-function))
 
+
+
+;Ripped from above function.  Should combine into something more seamless....
+(define/contract (use-weapon-against name c)
+
+  (->* (string? (or/c do-every? on-key? on-mouse?))
+       ()
+       do-every?)
+  
+  (define original-fire-function 
+    (cond [(do-every? c) (struct-do-every-func c)]
+          [(on-key?   c) (struct-on-key-f c)]
+          [(on-mouse? c) (struct-on-mouse-f c)]))
+
+  (define ticks-between-shots 
+    (cond [(do-every? c) (struct-do-every-speed c)]
+          [(on-key?   c) 50]
+          [(on-mouse? c) 50]))
+
+  ;But we need to fix it a bit, so we can hack the bullet that gets spawned,
+  ;  point the bullet at the player.  Make it hostile to the player.  Etc.
+  (define new-fire-function
+    (do-many
+                                           
+     original-fire-function
+                                           
+     (λ(g e)
+
+       (define new-s (update-what-will-spawn (get-component e spawn-once?)
+                                             (compose
+                                              ;(curryr add-bullet-damage-tag 'enemy-team)
+                                              (λ(e) (update-entity e posn? (posn 0 0)))
+                                              (λ(e) (add-component e
+                                                                   (on-start (point-to name))))
+                                              #;(λ(e)
+                                                  (update-entity e damage-processor?
+                                                                 (damage-processor
+                                                                  (process-bullet #:filter-out '(bullet enemy-team)))))
+                                              )
+                                             ))
+
+       (update-entity e spawn-once? new-s))))
+
+  
+  (do-every ticks-between-shots new-fire-function)
+  )
 
 
 (define (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
