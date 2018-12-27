@@ -432,7 +432,7 @@
 
   (define combatant-id (random 100000))
 
-  (define find-combatant (curry entity-with-storage "combatant-id" combatant-id))
+  (define find-combatant (curry fast-entity-with-storage "combatant-id" combatant-id))
 
   ;(define bar ((stat-config-display-entity (first stats)) find-combatant))
 
