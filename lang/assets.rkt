@@ -424,7 +424,7 @@
 
 ;MISC from LPC
 
-(define lava (bitmap "images/lava.png"))
+(define LAVA-SPRITE (bitmap "images/lava.png"))
 
 ; ==== MISC SHEETS =====
 (define CAT-SHEET        (bitmap "images/cat-sprite.png"))
