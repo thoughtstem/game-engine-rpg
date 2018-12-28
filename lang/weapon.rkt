@@ -4,6 +4,7 @@
          custom-weapon-system
          weapon-slot?
          weapon->turret
+         use-weapon
          use-weapon-against-player
          use-weapon-against
          weapon-backpack
@@ -196,6 +197,7 @@
                               #:fire-rate         [fr 3]
                               #:fire-key          [key 'f]
                               #:mouse-fire-button [button #f]
+                              #:point-to-mouse?   [ptm? #t]
                               #:rapid-fire?       [rf?     #t]
                               #:rule              [rule (λ (g e) #t)])
   (define fire-interval (max 1 (/ 30 fr)))
@@ -211,13 +213,17 @@
   (precompile! b)
   (cond
     [(eq? rf?    #t) (if button
-                         (do-every fire-interval #:rule fire-rule (shoot #:bullet (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+                         (do-every fire-interval #:rule fire-rule (shoot #:bullet (if ptm?
+                                                                                      (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+                                                                                      b)
                                                                          #:fire-mode fm))
                          (do-every fire-interval #:rule fire-rule (shoot #:bullet b
                                                                          #:fire-mode fm)))]
     [(not button) (on-key   key    #:rule fire-rule (shoot #:bullet b
                                                            #:fire-mode fm))]
-    [else         (on-mouse button #:rule fire-rule (shoot #:bullet (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+    [else         (on-mouse button #:rule fire-rule (shoot #:bullet (if ptm?
+                                                                        (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+                                                                        b)
                                                            #:fire-mode fm))]))
 
 (define (weapon->turret c)
@@ -249,7 +255,39 @@
       #f))
 
 
+(define/contract (use-weapon c #:before-spawn [f identity])
 
+  (->* ((or/c do-every? on-key? on-mouse?))
+       (#:before-spawn procedure?)
+       do-every?)
+  
+  (define original-fire-function 
+    (cond [(do-every? c) (struct-do-every-func c)]
+          [(on-key?   c) (struct-on-key-f c)]
+          [(on-mouse? c) (struct-on-mouse-f c)]))
+
+  (define ticks-between-shots 
+    (cond [(do-every? c) (struct-do-every-speed c)]
+          [(on-key?   c) 50]
+          [(on-mouse? c) 50]))
+
+  ;But we need to fix it a bit, so we can hack the bullet that gets spawned,
+  ;  point the bullet at the player.  Make it hostile to the player.  Etc.
+  (define new-fire-function
+    (do-many
+                                           
+     original-fire-function
+                                           
+     (λ(g e)
+
+       (define new-s (update-what-will-spawn (get-component e spawn-once?)
+                                             f))
+
+       (update-entity e spawn-once? new-s))))
+
+  
+  (do-every ticks-between-shots new-fire-function)
+  )
 
 
 ;When enemies shoot bullets, this hacks the bullets immediately after they spawn
