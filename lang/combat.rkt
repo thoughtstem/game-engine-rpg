@@ -150,13 +150,17 @@
 
 
 (provide combatant
+         get-stat
          divert-damage
          (rename-out (make-damager damager))
          damager-amount
          damager-tags
+         damager-has-tag?
          damager?
          damage-processor
          damage-processor?
+         conditional-damage-processor
+         
          no-progress-bar
          make-stat-config
          stat-progress-bar
@@ -168,7 +172,11 @@
          default-health+shields-stats
          stat-progress-bar
 
-         default-combat-particles)
+         default-combat-particles
+         add-by
+         subtract-by
+         multiply-by
+         divide-by)
 
 (require game-engine)
 
@@ -217,6 +225,10 @@
 
   ret)
 
+(define (damager-has-tag? tag)
+  (lambda (d)
+    (member tag (damager-tags d))))
+
 (define (add-damager-tag d t)
   (struct-copy damager d
                [tags (cons t (damager-tags d))]))
@@ -228,7 +240,18 @@
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
 
-
+(define (conditional-damage-processor #:rule rule
+                                   #:processor p1
+                                   #:default-processor p2)
+  (define (inner g an-entity a-damager)
+    (define final-dp (if (rule a-damager)
+                         p1
+                         p2))
+    (define final-dp-f (damage-processor-f final-dp))
+    (final-dp-f g an-entity a-damager))
+  (make-damage-processor
+   inner))
+  
 
 (define (divert-damage #:first-stat-protection  (adj1 identity)
                        #:first-stat             (stat1 "shield") 
@@ -248,6 +271,7 @@
     (define first-damage (adj1 (damager-amount a-damager)))
 
     ;(displayln (~a "first-damage " first-damage))
+    (displayln (~a "FINAL DAMAGE AMOUNT: " first-damage))
 
     (define first-stat-amount (get-stat stat1 an-entity))
 
@@ -255,7 +279,7 @@
 
     (define second-damage (adj2 leftover-damage))
 
-    ;(displayln (~a "second-damage " second-damage))\
+    ;(displayln (~a "second-damage " second-damage))
     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
                                             #:scale-each-tick 1
                                             #:particle-time-to-live 2
@@ -511,3 +535,16 @@
      (init-stat (stat-config-name n) a (stat-config-starting-value n)))
    e-without-stats
    stats))
+
+; === change-damage helpers ====
+(define (multiply-by num)
+  (curry * num))
+
+(define (divide-by num)
+  (curryr / num))
+
+(define (subtract-by num)
+  (curryr - num))
+
+(define (add-by num)
+  (curryr + num))
