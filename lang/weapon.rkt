@@ -386,7 +386,11 @@
   )
 
 
-(define (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
+(define fire-mode? (or/c 'normal 'homing 'random 'spread))
+
+(define/contract (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
+  (->* () (#:bullet entity? #:fire-mode fire-mode?) procedure?)
+  
   (lambda (g e)
     ((cond [(eq? fm 'normal) (spawn-on-current-tile b )]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
