@@ -190,6 +190,10 @@
     (define current-weapon (get-storage-data "Selected Weapon" e))
     (eq? current-weapon name)))
 
+(define (point-to-mouse-component? c)
+    (and (on-start? c)
+         (eq? (on-start-rule c) mouse-in-game?)
+         (eq? (on-start-func c) point-to-mouse)))
 
 (define (custom-weapon-system #:slot              [slot #f]
                               #:dart              [b (custom-bullet)]
@@ -369,7 +373,7 @@
        (define new-s (update-what-will-spawn (get-component e spawn-once?)
                                              (compose
                                               ;(curryr add-bullet-damage-tag 'enemy-team)
-                                              (λ(e) (update-entity e posn? (posn 0 0)))
+                                              ;(λ(e) (update-entity e posn? (posn 0 0)))
                                               (λ(e) (add-component e
                                                                    (on-start (point-to name))))
                                               #;(λ(e)
@@ -398,21 +402,19 @@
                                                       (add-components _ (follow "Enemy")
                                                                         #;(after-time 1000 die)))])
                                (spawn-on-current-tile homing-bullet))]
-           [(eq? fm 'random) (let ([random-bullet (add-components b (on-start (change-direction-by-random -15 15)))])
+           [(eq? fm 'random) (let ([random-bullet (add-components b (after-time 1 (change-direction-by-random -15 15)))])
                                (spawn-on-current-tile random-bullet))]
            [(eq? fm 'spread) (let ([top-bullet    (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
-                                                      (add-components _ (on-start (change-direction-by -10))
-                                                                        #;(after-time 10 die)))]
-                                   [middle-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
-                                                      #;(add-components b (after-time 10 die)))]
+                                                      (update-entity _ posn? (posn 0 0))
+                                                      (remove-component _ point-to-mouse-component?)
+                                                      (add-components _ (on-start (change-direction-by -10))))]
+                                   [middle-bullet b]
                                    [bottom-bullet (~> b
-                                                      ;(update-entity  _ speed? (speed 20))
-                                                      (add-components b (on-start (change-direction-by 10))
-                                                                    #;(after-time 10 die)))])
+                                                      (update-entity _ posn? (posn 0 0))
+                                                      (remove-component _ point-to-mouse-component?)
+                                                      (add-components _ (on-start (change-direction-by 10))))])
 
-                               (do-many (spawn-on-current-tile top-bullet)
-                                        (spawn-on-current-tile middle-bullet)
-                                        (spawn-on-current-tile bottom-bullet)))]) g e)))
+                               (spawn-on-current-tile (add-components middle-bullet
+                                                                      (on-start (spawn-on-current-tile top-bullet))
+                                                                      (on-start (spawn-on-current-tile bottom-bullet)))))]) g e)))
 
