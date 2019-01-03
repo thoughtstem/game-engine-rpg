@@ -13,6 +13,7 @@
          enemy-ai
          weapon-selector
          weapon-is?
+         weapon?
 
          ;custom-particles
          
@@ -195,6 +196,13 @@
          (eq? (on-start-rule c) mouse-in-game?)
          (eq? (on-start-func c) point-to-mouse)))
 
+
+;This is gross.  We really need to make a weapon component struct.
+;  But this hack will serve for now
+(define known-weapons '())
+(define (weapon? c)
+  (member (component-id c) known-weapons))
+
 (define (custom-weapon-system #:slot              [slot #f]
                               #:dart              [b (custom-bullet)]
                               #:fire-mode         [fm 'normal]
@@ -215,20 +223,25 @@
                                      (weapon-slot? slot))
                                rule)))
   (precompile! b)
-  (cond
-    [(eq? rf?    #t) (if button
-                         (do-every fire-interval #:rule fire-rule (shoot #:bullet (if ptm?
-                                                                                      (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
-                                                                                      b)
-                                                                         #:fire-mode fm))
-                         (do-every fire-interval #:rule fire-rule (shoot #:bullet b
-                                                                         #:fire-mode fm)))]
-    [(not button) (on-key   key    #:rule fire-rule (shoot #:bullet b
-                                                           #:fire-mode fm))]
-    [else         (on-mouse button #:rule fire-rule (shoot #:bullet (if ptm?
-                                                                        (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
-                                                                        b)
-                                                           #:fire-mode fm))]))
+  (define ret
+    (cond
+      [(eq? rf?    #t) (if button
+                           (do-every fire-interval #:rule fire-rule (shoot #:bullet (if ptm?
+                                                                                        (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+                                                                                        b)
+                                                                           #:fire-mode fm))
+                           (do-every fire-interval #:rule fire-rule (shoot #:bullet b
+                                                                           #:fire-mode fm)))]
+      [(not button) (on-key   key    #:rule fire-rule (shoot #:bullet b
+                                                             #:fire-mode fm))]
+      [else         (on-mouse button #:rule fire-rule (shoot #:bullet (if ptm?
+                                                                          (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
+                                                                          b)
+                                                             #:fire-mode fm))]))
+
+  (set! known-weapons (cons (component-id ret) known-weapons))
+
+  ret)
 
 (define (weapon->turret c)
   (cond [(do-every? c) (struct-copy struct-do-every c [rule (near? "Enemy" 120)])]
@@ -257,6 +270,39 @@
                             (remove-component _ speed?)
                             (entity-add-machine  machine))))
       #f))
+
+(provide add-weapon-filter)
+(define (add-weapon-filter c f)
+
+
+  (define original-fire-function 
+    (cond [(do-every? c) (struct-do-every-func c)]
+          [(on-key?   c) (struct-on-key-f c)]
+          [(on-mouse? c) (struct-on-mouse-f c)]))
+
+  (define new-fire-function
+    (do-many
+                                           
+     original-fire-function
+                                           
+     (λ(g e)
+
+       (define new-s (update-what-will-spawn (get-component e spawn-once?)
+                                             f))
+
+       (update-entity e spawn-once? new-s))))
+
+
+  (cond [(do-every? c)
+         (struct-copy struct-do-every c
+                      [func new-fire-function])]
+        [(on-key?   c)
+         (struct-copy struct-on-key c
+                      [f new-fire-function])]
+        [(on-mouse? c)
+         (struct-copy struct-on-mouse c
+                      [f new-fire-function])])
+  )
 
 
 (define/contract (use-weapon c #:before-spawn [f identity])

@@ -151,9 +151,12 @@
 
 (provide combatant
          get-stat
+         set-stat
+         change-stat
          divert-damage
          (rename-out (make-damager damager))
          damager-amount
+         set-damager-amount
          damager-tags
          damager-has-tag?
          damager?
@@ -236,6 +239,10 @@
 (define (remove-damager-tag d t)
   (struct-copy damager d
                [tags (filter-not (curry eq? t) (damager-tags d))]))
+
+(define (set-damager-amount d amt)
+  (struct-copy damager d
+               [amount amt]))
 
 (define (always-critical-hit)
   (simple-numeric-damage #:adj (thunk* 100000)))
