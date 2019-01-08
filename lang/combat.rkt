@@ -154,6 +154,7 @@
          set-stat
          change-stat
          divert-damage
+         filter-damage-by-tag
          (rename-out (make-damager damager))
          damager-amount
          set-damager-amount
