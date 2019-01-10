@@ -207,16 +207,44 @@
          ((spawn-on-current-tile hit-particles) g _)
          (effect _ (- (adj (damager-amount a-damager))))))))
 
-(define (filter-damage-by-tag #:do (effect change-health) #:adj (adj identity) #:filter-out (tag #f) )
+(define (player-toast-entity message #:color [color "yellow"])
+  (define color-symbol (if (string? color)
+                           (string->symbol color)
+                           color))
+  (sprite->entity (new-sprite message #:x-offset -1 #:y-offset 1 #:color 'black)
+                  #:name       "player toast"
+                  #:position   (posn 0 0)
+                  #:components (hidden)
+                               (layer "ui")
+                               (new-sprite message #:color color-symbol)
+                               (direction 270)
+                               ;(physical-collider)
+                               (speed 3)
+                               (on-start (do-many (go-to-entity "player" #:offset (posn 0 -20))
+                                                  (random-direction 240 300)
+                                                  (random-speed 2 4)
+                                                  show))
+                               (every-tick (do-many (move)
+                                                    (scale-sprite 1.05)))
+                               (after-time 15 die)))
+
+(define (filter-damage-by-tag #:do (effect change-health)
+                              #:adj (adj identity)
+                              #:filter-out (tag #f)
+                              #:show-damage? [sd? #f])
   (make-damage-processor
    (λ(g an-entity a-damager)
      (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
                                              #:scale-each-tick 1
                                              #:particle-time-to-live 2
                                              #:system-time-to-live 5))
+     (define d-amt (- (adj (damager-amount a-damager))))
      (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
+             ((if sd?
+                  (spawn (player-toast-entity (~a d-amt) #:color "orangered") #:relative? #f)
+                  (λ (g e) e)) g _)
              ((spawn-on-current-tile hit-particles) g _)
              (effect _ (- (adj (damager-amount a-damager)))))))))
 
