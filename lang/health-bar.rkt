@@ -60,9 +60,8 @@
   (define main-sprite (set-x-scale max (new-sprite health-bar-slice)))
 
   (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
-  (precompile! bg-image)
+  (precompile! bg-image health-bar-slice)
   
-
   (define bg-sprite (~> bg-image
                         (new-sprite _ #:animate #f)
                         (set-x-scale 104 _)
