@@ -190,11 +190,14 @@
                                #:data-from data-from)
   
   (define health-bar-slice (rectangle 1 1 'solid color))
+  (define initial-bar-width w) ;should get an inital value somehow
   (define main-sprite (~> health-bar-slice
                           (new-sprite _)
-                          (set-x-scale w _)
+                          (set-x-scale initial-bar-width _)
+                          (set-x-offset (/ (- initial-bar-width w) 2) _)
                           (set-y-scale h _)))
-  (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
+  ;(define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
+  (define bg-image (square 1 'solid 'dimgray))
   ;(precompile! bg-image)
   
 
@@ -210,25 +213,41 @@
 
     (define percentage (/ data m)) ;This should div by max??
 
+    (define bar-width (* percentage w))
+
+    (define new-bar-sprite (~> main-sprite
+                               (set-x-scale bar-width _)
+                               (set-x-offset (/ (- bar-width w) 2) _)))
     (if data
         (update-entity e
-                   (is-component? (last (get-components e animated-sprite?)))
-                   (set-x-scale (* percentage w) main-sprite) ;Need to make this a percentage
+                   (is-component? (get-component e main-sprite))
+                   new-bar-sprite ;Need to make this a percentage
                    )
         e))
+
+  (define border-image (square 1 'solid 'white #;(make-color 20 20 20 150)))
+  
+  (define border-sprite (~> border-image
+                        (new-sprite _ #:animate #f)
+                        (set-x-scale (+ 4 w) _)
+                        (set-y-scale (+ 4 h) _)))
   
   (define e
-    (sprite->entity bg-sprite
+    (sprite->entity border-sprite
                     #:name "progress-bar"
                     #:position (posn 0 0)
                     #:components
                     (layer "ui")
+                    ;(storage "main-sprite" main-sprite) ;not needed since we have direct access to main-sprite
                     (precompiler main-sprite
-                                 bg-sprite)
+                                 bg-sprite
+                                 border-sprite)
                     (do-every 20 update-from-data)
                     ))
 
-  (add-component e main-sprite)
+  (add-components e bg-sprite
+                    main-sprite
+                    )
  
   )
 

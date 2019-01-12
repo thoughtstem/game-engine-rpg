@@ -457,7 +457,7 @@
 (define (stat-progress-bar color
                            #:max    (max 100)
                            #:offset (p (posn 0 -20))
-                           #:width (w 20)
+                           #:width (w 26)
                            #:height (h 5)
                            #:after (f identity) ;For modifying the entity, e.g. removing lock-to?
                            )
@@ -476,6 +476,8 @@
         (if e
             (get-stat n e)
             0))
+
+      (displayln (~a "STAT-NAME: " stat-name))
 
       (define data-source
         (λ(g)
@@ -506,8 +508,8 @@
 
 
 (define (default-health+shields-stats health shields)
-  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -15)))
-        (make-stat-config 'shield shields (stat-progress-bar 'blue #:max shields #:offset (posn 0 -20)))))
+  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -20)))
+        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -28)))))
 
 
 
