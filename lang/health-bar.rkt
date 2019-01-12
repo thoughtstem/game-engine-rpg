@@ -72,6 +72,7 @@
                     #:name "health"
                     #:position (posn 100 20)
                     #:components
+                    (storage "health-bar-sprite" main-sprite) ;storing this to get id later
                     (counter 100)
                     (layer "ui")
                     (storage "efficient-health-bar" #t)
@@ -112,8 +113,7 @@
 
 (define (efficient-update-health-bar g e count #:max max-val)
   (define current-health-sprite
-    (last (get-components e animated-sprite?)))
-
+    (get-component e (get-storage-data "health-bar-sprite" e)))
 
   (define percentage (* 100
                         (/ count max-val)))
