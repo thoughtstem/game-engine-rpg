@@ -203,9 +203,31 @@
   (make-damage-processor
    (λ(g an-entity a-damager)
      (define hit-particles default-combat-particles)
+     (define d-amt (- (adj (damager-amount a-damager))))
      (~> an-entity
          ((spawn-on-current-tile hit-particles) g _)
-         (effect _ (- (adj (damager-amount a-damager))))))))
+         ((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
+         (effect _ d-amt)))))
+
+(define (toast-entity message #:color [color "yellow"])
+  (define color-symbol (if (string? color)
+                           (string->symbol color)
+                           color))
+  (sprite->entity (new-sprite message #:x-offset -1 #:y-offset 1 #:color 'black)
+                  #:name       "player toast"
+                  #:position   (posn 0 -20)
+                  #:components (hidden)
+                               (layer "ui")
+                               (new-sprite message #:color color-symbol)
+                               (direction 270)
+                               ;(physical-collider)
+                               (speed 3)
+                               (on-start (do-many (random-direction 240 300)
+                                                  (random-speed 2 4)
+                                                  show))
+                               (every-tick (do-many (move)
+                                                    (scale-sprite 1.05)))
+                               (after-time 15 die)))
 
 (define (player-toast-entity message #:color [color "yellow"])
   (define color-symbol (if (string? color)
@@ -243,7 +265,7 @@
          an-entity
          (~> an-entity
              ((if sd?
-                  (spawn (player-toast-entity (~a d-amt) #:color "orangered") #:relative? #f)
+                  (spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t)
                   (λ (g e) e)) g _)
              ((spawn-on-current-tile hit-particles) g _)
              (effect _ (- (adj (damager-amount a-damager)))))))))
@@ -324,6 +346,7 @@
          an-entity
          (~> an-entity
              ((spawn-on-current-tile hit-particles) g _)
+             ((spawn (toast-entity (~a (- first-damage)) #:color "orangered") #:relative? #t) g _)
              (change-stat stat1 _ (- first-damage))
              (change-stat stat2 _ (- second-damage)))))
 
