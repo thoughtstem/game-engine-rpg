@@ -245,7 +245,7 @@
                         0
                         select-sound))
   
-  (list
+  (flatten (list
    (precompiler crafting-list-entity
                 crafting-selection-entity)
    (on-key open-key #:rule (and/r near-player?
@@ -263,7 +263,7 @@
                  #:rule (and/r (ingredients-list->rule (recipe-ingredients j))
                                (recipe-rule j))
                  #:selection i)
-             )))
+             ))))
 
 (define (make-recipe #:product product
                      #:build-time [build-time 0]

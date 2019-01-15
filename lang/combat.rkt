@@ -180,7 +180,8 @@
          add-by
          subtract-by
          multiply-by
-         divide-by)
+         divide-by
+         toast-entity)
 
 (require game-engine)
 
@@ -209,13 +210,14 @@
          ((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
          (effect _ d-amt)))))
 
-(define (toast-entity message #:color [color "yellow"])
+(define (toast-entity message #:color [color "yellow"]
+                              #:position [p (posn 0 -20)])
   (define color-symbol (if (string? color)
                            (string->symbol color)
                            color))
   (sprite->entity (new-sprite message #:x-offset -1 #:y-offset 1 #:color 'black)
                   #:name       "player toast"
-                  #:position   (posn 0 -20)
+                  #:position   p
                   #:components (hidden)
                                (layer "ui")
                                (new-sprite message #:color color-symbol)
