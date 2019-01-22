@@ -1,6 +1,7 @@
 #lang racket
 
 (provide (rename-out (make-recipe recipe))
+         (except-out (struct-out recipe) recipe)
          recipe->system
          crafting-entity
          crafting-chest
@@ -198,12 +199,16 @@
 (define (crafting-menu #:open-key [open-key 'space]
                        #:open-sound [open-sound #f]
                        #:select-sound [select-sound #f]
-                       #:recipes r
-                                 . recipes)
+                       #:recipe-list [r-list '()]
+                       ;#:recipes r
+                       ;          . recipes
+                                 )
 
   ;(set! recipes (apply append recipes))
   ;(displayln recipes)
-  (define all-recipes (flatten (append (list r) recipes)))
+  (define all-recipes r-list
+    ;(flatten (append (list r) recipes))
+    )
 
   (define (ingredients-list->rule i-list)
     (define rules-list (map in-backpack? i-list))
@@ -380,15 +385,15 @@
     (make-recipe #:product (bat)))
 
   (define test-menu (flatten (crafting-menu #:open-key 'space
-                                            #:recipes smores-recipe
-                                             marshmallows-recipe
-                                             )))
+                                            #:recipe-list (list smores-recipe
+                                                                marshmallows-recipe)
+                                            )))
 
   
   (define test-menu2 (flatten
                       (crafting-menu #:open-key 'space
-                                     #:recipes smores-recipe
-                                     (list marshmallows-recipe))))
+                                     #:recipe-list (list smores-recipe
+                                                         marshmallows-recipe))))
 
   
   (define crafting-menu? (listof (or/c on-key? observe-change? precompiler?)))
