@@ -24,6 +24,12 @@
 (define SNOW-BG
   (bitmap "images/lpc_snow.png"))
 
+(define DESERT-BG
+  (bitmap "images/lpc_desert.png"))
+
+(define LAVA-BG
+  (bitmap "images/lpc_lava.png"))
+
 (define barrel-set
   (bitmap "images/barrels.png"))
 
