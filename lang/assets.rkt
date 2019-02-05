@@ -30,6 +30,9 @@
 (define LAVA-BG
   (bitmap "images/lpc_lava.png"))
 
+(define PINK-BG
+  (bitmap "images/lpc_pink.png"))
+
 (define barrel-set
   (bitmap "images/barrels.png"))
 
@@ -414,6 +417,48 @@
                   #:components (append
                                 (list (precompiler tree-top-entity)
                                       (on-start (spawn tree-top-entity)))
+                                (cons c custom-components)))  )
+
+(define (snow-pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (define tree-top-entity
+    (sprite->entity  (sprite-map (curry scale size)
+                                 (sprite-map (curry change-img-hue hue) (new-sprite (bitmap "images/snow-pine-tree-top.png"))))
+                    #:name       "Pine Tree Top"
+                    #:position   (posn 0 -50)
+                    #:components (layer "tops")
+                                 (active-on-bg tile)
+                                 (hue-val hue)
+                                 (size-val size)))
+  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree-trunk.png"))
+                  p
+                  #:name "Pine Tree Trunk"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (append
+                                (list (precompiler tree-top-entity)
+                                      (on-start (spawn tree-top-entity)))
+                                (cons c custom-components)))  )
+
+(define (candy-cane-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (define candy-cane-top-entity
+    (sprite->entity  (sprite-map (curry scale size)
+                                 (sprite-map (curry change-img-hue hue) (new-sprite (bitmap "images/candy-cane-top.png"))))
+                     #:name       "Candy Cane Top"
+                     #:position   (posn 0 -40)
+                     #:components (layer "tops")
+                     (active-on-bg tile)
+                     (hue-val hue)
+                     (size-val size)))
+  (generic-entity (simple-sheet->sprite (bitmap "images/candy-cane-base.png"))
+                  p
+                  #:name "Candy Cane Base"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (append
+                                (list (precompiler candy-cane-top-entity)
+                                      (on-start (spawn candy-cane-top-entity)))
                                 (cons c custom-components)))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
