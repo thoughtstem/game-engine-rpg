@@ -130,7 +130,7 @@
 
 
   
-  (combatant #:damage-processor (damage-processor (process-bullet #:filter-out 'bullet))
+  (combatant #:damage-processor (damage-processor (process-bullet #:filter-out '(bullet friendly-team)))
              #:stats (list (make-stat-config 'durability dur
                                              (no-progress-bar)
                                              ))
