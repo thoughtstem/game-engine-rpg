@@ -1,2 +1,4 @@
 **compiled/*
 compiled/
+*.dep
+*.zo
