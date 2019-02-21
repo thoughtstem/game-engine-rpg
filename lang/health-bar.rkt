@@ -57,7 +57,7 @@
                            #:change-by  (change-by -1))
   (define health-bar-slice (rectangle 1 10 'solid 'red))
 
-  (define main-sprite (set-x-scale max (new-sprite health-bar-slice)))
+  (define main-sprite (set-x-scale max (new-sprite health-bar-slice #:animate #f)))
 
   (define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
   (precompile! bg-image health-bar-slice)
@@ -192,7 +192,7 @@
   (define health-bar-slice (rectangle 1 1 'solid color))
   (define initial-bar-width w) ;should get an inital value somehow
   (define main-sprite (~> health-bar-slice
-                          (new-sprite _)
+                          (new-sprite _ #:animate #f)  ; MUST NOT ANIMATE TO SATISFY IS-COMPONENT?
                           (set-x-scale initial-bar-width _)
                           (set-x-offset (/ (- initial-bar-width w) 2) _)
                           (set-y-scale h _)))
@@ -220,7 +220,8 @@
                                (set-x-offset (/ (- bar-width w) 2) _)))
     (if data
         (update-entity e
-                   (is-component? (get-component e main-sprite))
+                   (is-component? main-sprite                        ;FIXED!
+                                  #;(get-component e main-sprite))   ;BROKEN?
                    new-bar-sprite ;Need to make this a percentage
                    )
         e))

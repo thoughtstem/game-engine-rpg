@@ -533,8 +533,8 @@
 
 
 (define (default-health+shields-stats health shields)
-  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -20)))
-        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -28)))))
+  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -40)))
+        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -48)))))
 
 
 
