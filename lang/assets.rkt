@@ -4,7 +4,8 @@
 
 
 (require 2htdp/image
-         game-engine)
+         game-engine
+         "./combat.rkt")
 
 (define (simple-sheet->sprite i)
   (sheet->sprite i
@@ -735,6 +736,27 @@
          #:components
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
+
+(define (make-world-objects object1 object2 #:random-color? [rc? #f])
+  (list
+   (object1 (posn 35 270)  #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 181 328) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 349 318) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 425 261) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 235 169) #:tile 1 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 358 240) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 325 121) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+   (object1 (posn 419 166) #:tile 7 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+   (object1 (posn 119 259) #:tile 8 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+   (object2 (posn 217 280) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 400 140) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 341 297) #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 87 164)  #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive))) 
+   (object2 (posn 155 150) #:tile 4 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 293 228) #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 92 276)  #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 114 274) #:tile 6 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+   (object2 (posn 256 252) #:tile 7 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))
 
 
 
