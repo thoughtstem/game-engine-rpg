@@ -99,12 +99,35 @@
     ;(define bullet-spd (get-ai-speed an-entity))
     (define new-bullet-speed (and (get-ai-speed an-entity)
                                   (/ (get-ai-speed an-entity) 2)))
-    (displayln (~a "NEW BULLET HP: " new-bullet-hp))
+    ;(displayln (~a "NEW BULLET HP: " new-bullet-hp))
+
+    #|(define nearest-ent
+      (get-nearest-entity-to an-entity g #:filter (has-component? damager?)))
+    
+    (define show-bullet-component
+      (observe-change (λ (g e) (is-colliding? e g)) (λ (g e1 e2)
+                                                      (if (is-colliding? e2 g)
+                                                          (begin (displayln "IS COLLIDING")
+                                                                 e2)
+                                                          (begin (displayln "NOT COLLIDING")
+                                                                 (~> e2
+                                                                     (remove-component _ observe-change?)
+                                                                     (remove-component _ hidden?)))))))|#
+    
     (if (should-filter-out? a-damager tag ) ;(member tag (damager-tags a-damager))
         an-entity
         (~> an-entity
             ;((spawn-on-current-tile hit-particles) g _) ; looks odd at center of large bullets (ie spear)
             (update-entity _ speed? (speed new-bullet-speed))
+            (add-components _ (hidden)
+                              (after-time 2 show))
+            #|(add-components _ (hidden)
+                            ;show-bullet-component
+                            (on-rule (λ (g e) (not (entities-are-touching? e (get-nearest-entity-to e g #:filter (has-component? damager?)
+                                                                                                    ))))
+                                     (begin (displayln "NOT TOUCHING")
+                                            show))
+                            )|#
             (set-storage "durability-stat" _ new-bullet-hp)))))
 
 (define (die-and-spawn e)
@@ -127,8 +150,6 @@
                        #:rotation-style [rs 'face-direction]
                        #:components [c #f]
                                     . custom-components)
-
-
   
   (combatant #:damage-processor (damage-processor (process-bullet #:filter-out '(bullet friendly-team)))
              #:stats (list (make-stat-config 'durability dur
@@ -169,6 +190,17 @@
   (list (storage "Weapon Slot" 1)
         (map slot->on-key (range 1 (add1 slots)))))
 
+(define (weapon-select-entity name)
+  (sprite->entity (flatten (list (new-sprite (~a "SELECTED: " name) #:color 'yellow)
+                                 (bordered-box-sprite 200 24)))
+                  #:name "Weapon Selection Popup"
+                  #:position (posn 0 0)
+                  #:components (hidden)
+                               (layer "ui")
+                               (on-start (do-many (go-to-pos-inside 'bottom-center)
+                                                  show))
+                               (after-time 100 die)))
+
 (define (select-backpack-item num)
   (lambda (g e)
     (define backpack-list (get-backpack-entities e))
@@ -177,7 +209,10 @@
                           #f))
     (if item-name
         (begin (displayln (~a "WEAPON SELECTED: " item-name))
-               ((set-storage-named "Selected Weapon" item-name) g e))
+               (~> e
+                   ((set-storage-named "Selected Weapon" item-name) g _)
+                   (add-components _ (spawn-once (weapon-select-entity item-name) #:relative? #f)))
+                   )
         e)))
 
 (define (weapon-selector #:slots [slots 1])
