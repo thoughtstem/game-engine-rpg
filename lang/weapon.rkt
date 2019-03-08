@@ -84,7 +84,12 @@
            (circle 7 "solid" "red")))
 
 
-
+(define (touching-nearest-damager? g e)
+  (entities-are-touching? e (get-nearest-entity-to e g #:filter (and/c (has-component? damager?)
+                                                                       (λ (e) (not (eq? "Bullet" (get-name e)))))
+                                                   #;(and/c (has-component? damager?)
+                                                            (λ (e) (not (eq? "player" (get-name e)))))
+                                                   )))
 
 (define (process-bullet #:filter-out [tag #f])
   (lambda (g an-entity a-damager)
@@ -102,32 +107,28 @@
     ;(displayln (~a "NEW BULLET HP: " new-bullet-hp))
 
     #|(define nearest-ent
-      (get-nearest-entity-to an-entity g #:filter (has-component? damager?)))
+      (get-nearest-entity-to an-entity g #:filter (has-component? damager?)))|#
     
     (define show-bullet-component
-      (observe-change (λ (g e) (is-colliding? e g)) (λ (g e1 e2)
-                                                      (if (is-colliding? e2 g)
-                                                          (begin (displayln "IS COLLIDING")
-                                                                 e2)
-                                                          (begin (displayln "NOT COLLIDING")
-                                                                 (~> e2
-                                                                     (remove-component _ observe-change?)
-                                                                     (remove-component _ hidden?)))))))|#
+      (observe-change touching-nearest-damager?
+                      (λ (g e1 e2)
+                        (if (touching-nearest-damager? g e2)
+                            e2
+                            (show g e2)))))
     
     (if (should-filter-out? a-damager tag ) ;(member tag (damager-tags a-damager))
         an-entity
         (~> an-entity
             ;((spawn-on-current-tile hit-particles) g _) ; looks odd at center of large bullets (ie spear)
             (update-entity _ speed? (speed new-bullet-speed))
+            ;(add-components _ (hidden)
+            ;                  (after-time 2 show))\
+            (remove-components _ hidden?)
+            (remove-components _ (is-component? show-bullet-component))
             (add-components _ (hidden)
-                              (after-time 2 show))
-            #|(add-components _ (hidden)
-                            ;show-bullet-component
-                            (on-rule (λ (g e) (not (entities-are-touching? e (get-nearest-entity-to e g #:filter (has-component? damager?)
-                                                                                                    ))))
-                                     (begin (displayln "NOT TOUCHING")
-                                            show))
-                            )|#
+                              show-bullet-component
+                            ;(on-separate (has-component? damager?) show)
+                            )
             (set-storage "durability-stat" _ new-bullet-hp)))))
 
 (define (die-and-spawn e)
@@ -167,6 +168,18 @@
                                         ;(die-and-spawn hit-particles)
                                         die
                                         )
+                               ;(on-separate (has-component? damager?) show)
+                               #|(observe-change touching-nearest-damager?
+                                               (λ (g e1 e2)
+                                                 (define nearest-ent (get-nearest-entity-to e2 g #:filter (has-component? damager?)
+                                                                                                        #;(and/c (has-component? damager?)
+                                                                                                                 (λ (e) (not (eq? "player" (get-name e)))))
+                                                                                                        ))
+                                                 (if (touching-nearest-damager? g e2)
+                                                     (begin ;(displayln (~a "TOUCHING: " (get-name nearest-ent)))
+                                                            (hide g e2))
+                                                     (begin ;(displayln (~a "NOT TOUCHING: " (get-name nearest-ent)))
+                                                            (show g e2)))))|#
                                (rotation-style rs)
                                (hidden)
                                (on-start show)
@@ -190,16 +203,20 @@
   (list (storage "Weapon Slot" 1)
         (map slot->on-key (range 1 (add1 slots)))))
 
-(define (weapon-select-entity name)
-  (sprite->entity (flatten (list (new-sprite (~a "SELECTED: " name) #:color 'yellow)
-                                 (bordered-box-sprite 200 24)))
+(define (weapon-select-entity name #:game-width [game-width 480])
+  (define pop-up-text (~a name #:max-width (sub1 (/ game-width 10))))
+  (define str-length (string-length pop-up-text))
+  (define box-width (* (add1 str-length) 10))
+  (sprite->entity (flatten (list (new-sprite pop-up-text #:color 'yellow)
+                                 (bordered-box-sprite box-width 24)))
                   #:name "Weapon Selection Popup"
                   #:position (posn 0 0)
                   #:components (hidden)
                                (layer "ui")
                                (on-start (do-many (go-to-pos-inside 'bottom-center)
                                                   show))
-                               (after-time 100 die)))
+                               (after-time 100 die)
+                               (map (curryr on-key die) (range 10))))
 
 (define (select-backpack-item num)
   (lambda (g e)
@@ -211,7 +228,7 @@
         (begin (displayln (~a "WEAPON SELECTED: " item-name))
                (~> e
                    ((set-storage-named "Selected Weapon" item-name) g _)
-                   (add-components _ (spawn-once (weapon-select-entity item-name) #:relative? #f)))
+                   (add-components _ (spawn-once (weapon-select-entity item-name #:game-width (game-width g)) #:relative? #f)))
                    )
         e)))
 
