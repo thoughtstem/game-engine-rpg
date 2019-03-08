@@ -85,7 +85,8 @@
 
 
 (define (touching-nearest-damager? g e)
-  (entities-are-touching? e (get-nearest-entity-to e g #:filter (has-component? damager?)
+  (entities-are-touching? e (get-nearest-entity-to e g #:filter (and/c (has-component? damager?)
+                                                                       (λ (e) (not (eq? "Bullet" (get-name e)))))
                                                    #;(and/c (has-component? damager?)
                                                             (λ (e) (not (eq? "player" (get-name e)))))
                                                    )))
@@ -121,11 +122,13 @@
             ;((spawn-on-current-tile hit-particles) g _) ; looks odd at center of large bullets (ie spear)
             (update-entity _ speed? (speed new-bullet-speed))
             ;(add-components _ (hidden)
-            ;                  (after-time 2 show))
-            #|(add-components _ (hidden)
+            ;                  (after-time 2 show))\
+            (remove-components _ hidden?)
+            (remove-components _ (is-component? show-bullet-component))
+            (add-components _ (hidden)
                               show-bullet-component
                             ;(on-separate (has-component? damager?) show)
-                            )|#
+                            )
             (set-storage "durability-stat" _ new-bullet-hp)))))
 
 (define (die-and-spawn e)
