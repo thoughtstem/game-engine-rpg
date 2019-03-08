@@ -378,6 +378,10 @@
                   #:size size
                   #:components (cons c custom-components))  )
 
+(define (spawn-top-from-storage g e)
+  (define to-spawn (get-storage-data "Top" e))
+  ((spawn to-spawn) g e))
+
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (define tree-top-entity
     (sprite->entity  (sprite-map (curry scale size)
@@ -396,7 +400,8 @@
                   #:size size
                   #:components (append
                                 (list (precompiler tree-top-entity)
-                                      (on-start (spawn tree-top-entity)))
+                                      (storage "Top" tree-top-entity)
+                                      (on-start spawn-top-from-storage))
                                 (cons c custom-components)))  )
 
 (define (pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -417,7 +422,8 @@
                   #:size size
                   #:components (append
                                 (list (precompiler tree-top-entity)
-                                      (on-start (spawn tree-top-entity)))
+                                      (storage "Top" tree-top-entity)
+                                      (on-start spawn-top-from-storage))
                                 (cons c custom-components)))  )
 
 (define (snow-pine-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -438,7 +444,8 @@
                   #:size size
                   #:components (append
                                 (list (precompiler tree-top-entity)
-                                      (on-start (spawn tree-top-entity)))
+                                      (storage "Top" tree-top-entity)
+                                      (on-start spawn-top-from-storage))
                                 (cons c custom-components)))  )
 
 (define (candy-cane-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -459,7 +466,8 @@
                   #:size size
                   #:components (append
                                 (list (precompiler candy-cane-top-entity)
-                                      (on-start (spawn candy-cane-top-entity)))
+                                      (storage "Top" candy-cane-top-entity)
+                                      (on-start spawn-top-from-storage))
                                 (cons c custom-components)))  )
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
@@ -737,26 +745,51 @@
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
 
-(define (make-world-objects object1 object2 #:random-color? [rc? #f])
-  (list
-   (object1 (posn 35 270)  #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 181 328) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 349 318) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 425 261) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 235 169) #:tile 1 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 358 240) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 325 121) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
-   (object1 (posn 419 166) #:tile 7 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
-   (object1 (posn 119 259) #:tile 8 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
-   (object2 (posn 217 280) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 400 140) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 341 297) #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 87 164)  #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive))) 
-   (object2 (posn 155 150) #:tile 4 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 293 228) #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 92 276)  #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 114 274) #:tile 6 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-   (object2 (posn 256 252) #:tile 7 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))
+(define (reduce-quality e)
+  (define (reduce-all-frames as)
+    (define new-frames (list->vector (map (compose fast-image
+                                                   (curry scale 0.25)
+                                                   frame->image)
+                                          (vector->list (animated-sprite-frames as)))))
+    (struct-copy animated-sprite as [frames new-frames]
+                                    [o-frames new-frames]))
+  (define all-as (get-components e image-animated-sprite?))
+  (define new-as (map (compose reduce-all-frames
+                               (curry set-sprite-scale 4))
+                      all-as))
+  (define updated-e (if (get-storage "Top" e)
+                        (let ([new-top-entity (reduce-quality (get-storage-data "Top" e))])
+                          (~> e
+                              (set-storage "Top" _ new-top-entity)
+                              (update-entity _ precompiler? (precompiler new-top-entity))))
+                        e))
+  (~> updated-e
+      (remove-components _ image-animated-sprite?)
+      (add-components _ new-as)))
+
+(define (make-world-objects object1 object2 #:random-color? [rc? #f] #:hd? [hd? #f])
+  (define objects-list (list
+                        (object1 (posn 35 270)  #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 181 328) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 349 318) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 425 261) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 235 169) #:tile 1 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 358 240) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 325 121) #:tile 4 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+                        (object1 (posn 419 166) #:tile 7 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+                        (object1 (posn 119 259) #:tile 8 #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 217 280) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 400 140) #:tile 2 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 341 297) #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 87 164)  #:tile 3 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive))) 
+                        (object2 (posn 155 150) #:tile 4 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 293 228) #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 92 276)  #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 114 274) #:tile 6 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+                        (object2 (posn 256 252) #:tile 7 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))
+  (if hd?
+      objects-list
+      (map reduce-quality objects-list)))
 
 
 
