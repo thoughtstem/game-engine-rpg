@@ -275,9 +275,9 @@
                      #:ingredients [i-list '()]
                      #:rule [rule (λ (g e) #t)])
 
-  (recipe (~> product
-              (remove-component _ on-key?)
-              (add-components _ (consumable)))
+  (recipe product #;(~> product
+                        (remove-component _ on-key?)
+                        (add-components _ (consumable))) ; this is handled at the custom food level
           build-time
           i-list
           rule))
