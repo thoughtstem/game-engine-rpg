@@ -194,7 +194,7 @@
                                (crafter-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule #:selection 0)
                                (cons c custom-components)))
 
-(struct recipe (product build-time ingredients rule))
+(struct recipe (product build-time ingredients cost rule))
 
 (define (crafting-menu #:open-key [open-key 'space]
                        #:open-sound [open-sound #f]
@@ -270,16 +270,25 @@
                  #:selection i)
              ))))
 
+(define (has-score? amount)
+  (lambda (g e)
+    (define score (get-counter (get-entity "score" g)))
+    (>= score amount)))
+
 (define (make-recipe #:product product
                      #:build-time [build-time 0]
                      #:ingredients [i-list '()]
-                     #:rule [rule (λ (g e) #t)])
+                     #:cost [cost 0]
+                     #:rule [rule (if (> cost 0)
+                                      (has-score? cost)
+                                      (λ (g e) #t))])
 
   (recipe product #;(~> product
                         (remove-component _ on-key?)
                         (add-components _ (consumable))) ; this is handled at the custom food level
           build-time
           i-list
+          cost
           rule))
 
 (define (recipe->system r)
