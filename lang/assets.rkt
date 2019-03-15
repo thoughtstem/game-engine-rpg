@@ -380,7 +380,7 @@
 
 (define (spawn-top-from-storage g e)
   (define to-spawn (get-storage-data "Top" e))
-  ((spawn to-spawn) g e))
+  ((spawn to-spawn) g (remove-storage "Top" e)))
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (define tree-top-entity
@@ -729,6 +729,8 @@
      (on-key "p" #:rule carried? (do-many (change-color-by 20)
                                           (change-hue-val-by 20)))
      (on-key 'backspace #:rule carried? die)
+     (hidden)
+     (on-start show)
      ))
   
   (sprite->entity (sprite-map (curry scale size)
