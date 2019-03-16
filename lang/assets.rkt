@@ -750,7 +750,8 @@
 (define (reduce-quality e #:by [factor 4])
   (define (reduce-all-frames as)
     (define new-frames (list->vector (map (compose fast-image
-                                                   (curry scale (/ 1 factor))
+                                                   (compose freeze
+                                                            (curry scale (/ 1 factor)))
                                                    frame->image)
                                           (vector->list (animated-sprite-frames as)))))
     (struct-copy animated-sprite as [frames new-frames]
