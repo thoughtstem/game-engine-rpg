@@ -218,10 +218,14 @@
 
   (define (recipe->icon r)
     (define recipe-item (recipe-product r))
-    (define as (if (procedure? recipe-item)
+    #;(define as (if (procedure? recipe-item)
                    (get-component (recipe-item) animated-sprite?)
                    (get-component recipe-item animated-sprite?)))
-    (render as))
+    #;(render as)
+    (if (procedure? recipe-item)
+        (draw-entity (recipe-item))
+        (draw-entity recipe-item))
+    )
 
   (define (recipe->name r)
     (define recipe-item (recipe-product r))
