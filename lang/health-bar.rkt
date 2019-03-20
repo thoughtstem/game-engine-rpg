@@ -9,7 +9,8 @@
       (sprite->entity (draw-health-bar 100 #:max 100)
                       #:name "health"
                       #:position (posn 100 20)
-                      #:components (counter 100) (every-tick (maybe-change-health-by -1 #:max 100))))
+                      #:components (counter 100)
+                                   (every-tick (maybe-change-health-by -1 #:max 100))))
 
     (define g (initialize-game (list health-entity)))
 
@@ -113,7 +114,11 @@
 
 (define (efficient-update-health-bar g e count #:max max-val)
   (define current-health-sprite
-    (get-component e (get-storage-data "health-bar-sprite" e)))
+    (get-component e ;(get-storage-data "health-bar-sprite" e)
+                   (curry component-eq? (get-storage-data "health-bar-sprite" e))
+                   ))
+
+  (displayln (~a "FOUND COMPONENT? " current-health-sprite))
 
   (define percentage (* 100
                         (/ count max-val)))
@@ -191,21 +196,31 @@
   
   (define health-bar-slice (rectangle 1 1 'solid color))
   (define initial-bar-width w) ;should get an inital value somehow
-  (define main-sprite (~> health-bar-slice
+  (define main-sprite #|(~> health-bar-slice
                           (new-sprite _ #:animate #f)  ; MUST NOT ANIMATE TO SATISFY IS-COMPONENT?
                           (set-x-scale initial-bar-width _)
                           (set-x-offset (/ (- initial-bar-width w) 2) _)
-                          (set-y-scale h _)))
+                          (set-y-scale h _))|#
+                      (new-sprite health-bar-slice
+                                  #:animate #f          ; MUST NOT ANIMATE TO SATISFY IS-COMPONENT?
+                                  #:x-scale initial-bar-width
+                                  #:x-offset (/ (- initial-bar-width w) 2)
+                                  #:y-scale h))
   ;(define bg-image (rectangle 1 1 'solid (make-color 0 0 0 100)))
   (define bg-image (square 1 'solid 'dimgray))
   ;(precompile! bg-image)
   
 
   (define bg-sprite
-    (~> bg-image
+    #|(~> bg-image
         (new-sprite _ #:animate #f)
         (set-x-scale (+ 2 w) _)
-        (set-y-scale (+ 2 h) _)))
+        (set-y-scale (+ 2 h) _))|#
+    (new-sprite bg-image
+                #:animate #f
+                #:x-scale (+ 2 w)
+                #:y-scale (+ 2 h))
+    )
 
 
   (define (update-from-data g e)
@@ -214,24 +229,32 @@
     (define percentage (/ data m)) ;This should div by max??
 
     (define bar-width (* percentage w))
+    ;(displayln (~a "BAR WIDTH: " bar-width))
 
     (define new-bar-sprite (~> main-sprite
                                (set-x-scale bar-width _)
                                (set-x-offset (/ (- bar-width w) 2) _)))
     (if data
         (update-entity e
-                   (is-component? main-sprite                        ;FIXED!
-                                  #;(get-component e main-sprite))   ;BROKEN?
-                   new-bar-sprite ;Need to make this a percentage
-                   )
+                       (curry component-eq? main-sprite)                  ;FIXED?
+                       ;(is-component? main-sprite                        ;FIXED! NOW BROKEN!
+                       ;               #;(get-component e main-sprite))   ;BROKEN?
+                   
+                       new-bar-sprite ;Need to make this a percentage
+                       )
         e))
 
   (define border-image (square 1 'solid 'white #;(make-color 20 20 20 150)))
   
-  (define border-sprite (~> border-image
+  (define border-sprite #|(~> border-image
                         (new-sprite _ #:animate #f)
                         (set-x-scale (+ 4 w) _)
-                        (set-y-scale (+ 4 h) _)))
+                        (set-y-scale (+ 4 h) _))|#
+                        (new-sprite border-image
+                                    #:animate #f
+                                    #:x-scale (+ 4 w)
+                                    #:y-scale (+ 4 h))
+    )
   
   (define e
     (sprite->entity border-sprite

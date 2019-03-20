@@ -380,7 +380,7 @@
 
 (define (spawn-top-from-storage g e)
   (define to-spawn (get-storage-data "Top" e))
-  ((spawn to-spawn) g e))
+  ((spawn to-spawn) g (remove-storage "Top" e)))
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (define tree-top-entity
@@ -729,6 +729,8 @@
      (on-key "p" #:rule carried? (do-many (change-color-by 20)
                                           (change-hue-val-by 20)))
      (on-key 'backspace #:rule carried? die)
+     (hidden)
+     (on-start show)
      ))
   
   (sprite->entity (sprite-map (curry scale size)
@@ -745,17 +747,18 @@
          (active-on-bg 0)
          (producer-of thing-to-build #:build-time build-time)))
 
-(define (reduce-quality e)
+(define (reduce-quality e #:by [factor 4])
   (define (reduce-all-frames as)
     (define new-frames (list->vector (map (compose fast-image
-                                                   (curry scale 0.25)
+                                                   (compose freeze
+                                                            (curry scale (/ 1 factor)))
                                                    frame->image)
                                           (vector->list (animated-sprite-frames as)))))
     (struct-copy animated-sprite as [frames new-frames]
                                     [o-frames new-frames]))
   (define all-as (get-components e image-animated-sprite?))
   (define new-as (map (compose reduce-all-frames
-                               (curry set-sprite-scale 4))
+                               (curry set-sprite-scale factor))
                       all-as))
   (define updated-e (if (get-storage "Top" e)
                         (let ([new-top-entity (reduce-quality (get-storage-data "Top" e))])
@@ -766,6 +769,9 @@
   (~> updated-e
       (remove-components _ image-animated-sprite?)
       (add-components _ new-as)))
+
+(define (reduce-quality-by factor e)
+  (reduce-quality e #:by factor))
 
 (define (make-world-objects object1 object2 #:random-color? [rc? #f] #:hd? [hd? #f])
   (define objects-list (list
