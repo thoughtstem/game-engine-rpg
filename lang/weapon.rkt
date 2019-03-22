@@ -38,6 +38,7 @@
          )
 
 (require game-engine
+         ;(only-in rsound rsound?)
          "./combat.rkt"
          "./health-bar.rkt")
 
@@ -91,7 +92,7 @@
                                                             (λ (e) (not (eq? "player" (get-name e)))))
                                                    )))
 
-(define (process-bullet #:filter-out [tag #f])
+(define (process-bullet #:filter-out [tag #f] #:hit-sound [hit-sound #f])
   (lambda (g an-entity a-damager)
     #;(define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
                                             #:scale-each-tick 1
@@ -218,7 +219,7 @@
                                (after-time 100 die)
                                (map (curryr on-key die) (range 10))))
 
-(define (select-backpack-item num)
+(define (select-backpack-item num #:select-sound [select-sound #f])
   (lambda (g e)
     (define backpack-list (get-backpack-entities e))
     (define item-name (if (> (length backpack-list) num)
@@ -228,13 +229,14 @@
         (begin (displayln (~a "WEAPON SELECTED: " item-name))
                (~> e
                    ((set-storage-named "Selected Weapon" item-name) g _)
+                   ((play-sound select-sound) g _)
                    (add-components _ (spawn-once (weapon-select-entity item-name #:game-width (game-width g)) #:relative? #f)))
                    )
         e)))
 
-(define (weapon-selector #:slots [slots 1])
+(define (weapon-selector #:slots [slots 1] #:select-sound [select-sound #f])
   (define (slot->on-key num)
-    (on-key num (select-backpack-item (sub1 num))))
+    (on-key num (select-backpack-item (sub1 num) #:select-sound select-sound)))
   (list (storage "Selected Weapon" "None")
         (map slot->on-key (range 1 (add1 slots)))))
 
@@ -260,6 +262,7 @@
                               #:fire-mode         [fm 'normal]
                               #:fire-rate         [fr 3]
                               #:fire-key          [key 'f]
+                              #:fire-sound        [fire-sound #f]
                               #:mouse-fire-button [button #f]
                               #:point-to-mouse?   [ptm? #t]
                               #:rapid-fire?       [rf?     #t]
@@ -281,15 +284,19 @@
                            (do-every fire-interval #:rule fire-rule (shoot #:bullet (if ptm?
                                                                                         (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
                                                                                         b)
-                                                                           #:fire-mode fm))
+                                                                           #:fire-mode fm
+                                                                           #:fire-sound fire-sound))
                            (do-every fire-interval #:rule fire-rule (shoot #:bullet b
-                                                                           #:fire-mode fm)))]
+                                                                           #:fire-mode fm
+                                                                           #:fire-sound fire-sound)))]
       [(not button) (on-key   key    #:rule fire-rule (shoot #:bullet b
-                                                             #:fire-mode fm))]
+                                                             #:fire-mode fm
+                                                             #:fire-sound fire-sound))]
       [else         (on-mouse button #:rule fire-rule (shoot #:bullet (if ptm?
                                                                           (add-components b (on-start #:rule mouse-in-game? point-to-mouse))
                                                                           b)
-                                                             #:fire-mode fm))]))
+                                                             #:fire-mode fm
+                                                             #:fire-sound fire-sound))]))
 
   (set! known-weapons (cons (component-id ret) known-weapons))
 
@@ -490,18 +497,26 @@
 
 (define fire-mode? (or/c 'normal 'homing 'random 'spread))
 
-(define/contract (shoot #:bullet [b (custom-bullet)] #:fire-mode [fm 'normal])
-  (->* () (#:bullet entity? #:fire-mode fire-mode?) procedure?)
+(define/contract (shoot #:bullet [b (custom-bullet)]
+                        #:fire-mode [fm 'normal]
+                        #:fire-sound [fire-sound #f])
+  (->* () (#:bullet entity?
+           #:fire-mode fire-mode?
+           #:fire-sound any/c #;(or/c rsound? #f))
+       procedure?)
   
   (lambda (g e)
-    ((cond [(eq? fm 'normal) (spawn-on-current-tile b )]
+    ((cond [(eq? fm 'normal) (do-many (spawn-on-current-tile b )
+                                      (play-sound fire-sound))]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
                                                       ;(update-entity  _ speed? (speed 5))
                                                       (add-components _ (follow "Enemy")
                                                                         #;(after-time 1000 die)))])
-                               (spawn-on-current-tile homing-bullet))]
+                               (do-many (spawn-on-current-tile homing-bullet)
+                                        (play-sound fire-sound)))]
            [(eq? fm 'random) (let ([random-bullet (add-components b (after-time 1 (change-direction-by-random -15 15)))])
-                               (spawn-on-current-tile random-bullet))]
+                               (do-many (spawn-on-current-tile random-bullet)
+                                        (play-sound fire-sound)))]
            [(eq? fm 'spread) (let ([top-bullet    (~> b
                                                       (update-entity _ posn? (posn 0 0))
                                                       (remove-component _ point-to-mouse-component?)
@@ -512,7 +527,8 @@
                                                       (remove-component _ point-to-mouse-component?)
                                                       (add-components _ (on-start (change-direction-by 10))))])
 
-                               (spawn-on-current-tile (add-components middle-bullet
-                                                                      (on-start (spawn-on-current-tile top-bullet))
-                                                                      (on-start (spawn-on-current-tile bottom-bullet)))))]) g e)))
+                               (do-many (spawn-on-current-tile (add-components middle-bullet
+                                                                               (on-start (spawn-on-current-tile top-bullet))
+                                                                               (on-start (spawn-on-current-tile bottom-bullet))))
+                                        (play-sound fire-sound)))]) g e)))
 

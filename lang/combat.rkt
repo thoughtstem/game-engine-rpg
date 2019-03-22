@@ -200,13 +200,14 @@
                                                    #:particle-time-to-live 2
                                                    #:system-time-to-live 5))
 
-(define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity))
+(define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity) #:hit-sound (hit-sound #f))
   (make-damage-processor
    (λ(g an-entity a-damager)
      (define hit-particles default-combat-particles)
      (define d-amt (- (adj (damager-amount a-damager))))
      (~> an-entity
          ((spawn-on-current-tile hit-particles) g _)
+         ((play-sound hit-sound) g _)
          ((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
          (effect _ d-amt)))))
 
@@ -255,7 +256,8 @@
 (define (filter-damage-by-tag #:do (effect change-health)
                               #:adj (adj identity)
                               #:filter-out (tag #f)
-                              #:show-damage? [sd? #f])
+                              #:show-damage? [sd? #f]
+                              #:hit-sound [hit-sound #f])
   (make-damage-processor
    (λ(g an-entity a-damager)
      (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
@@ -269,6 +271,7 @@
              ((if sd?
                   (spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t)
                   (λ (g e) e)) g _)
+             ((play-sound hit-sound) g _)
              ((spawn-on-current-tile hit-particles) g _)
              (effect _ (- (adj (damager-amount a-damager)))))))))
 
@@ -317,7 +320,8 @@
                        #:first-stat             (stat1 "shield") 
                        #:second-stat-protection (adj2 identity)
                        #:second-stat            (stat2 "health")
-                       #:filter-out             (tag #f))
+                       #:filter-out             (tag #f)
+                       #:hit-sound              (hit-sound #f))
 
   ;Wow, you can have contracts on an inner function...
   (define/contract (inner g an-entity a-damager)
@@ -347,6 +351,7 @@
     (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
+             ((play-sound hit-sound) g _)
              ((spawn-on-current-tile hit-particles) g _)
              ((spawn (toast-entity (~a (- first-damage)) #:color "orangered") #:relative? #t) g _)
              (change-stat stat1 _ (- first-damage))
