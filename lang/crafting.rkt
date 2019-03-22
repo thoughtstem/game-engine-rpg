@@ -257,6 +257,7 @@
   (flatten (list
    (precompiler crafting-list-entity
                 crafting-selection-entity)
+   (sound-stream)
    (on-key open-key #:rule (and/r near-player?
                                   all-dialog-closed?)
           (do-many (set-counter 0)
