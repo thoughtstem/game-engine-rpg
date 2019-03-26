@@ -499,13 +499,16 @@
 
 (define/contract (shoot #:bullet [b (custom-bullet)]
                         #:fire-mode [fm 'normal]
-                        #:fire-sound [fire-sound #f])
+                        #:fire-sound [fs #f])
   (->* () (#:bullet entity?
            #:fire-mode fire-mode?
            #:fire-sound any/c #;(or/c rsound? #f))
        procedure?)
   
   (lambda (g e)
+    (define fire-sound (if (procedure? fs)
+                           (fs)
+                           fs))
     ((cond [(eq? fm 'normal) (do-many (spawn-on-current-tile b )
                                       (play-sound fire-sound))]
            [(eq? fm 'homing) (let ([homing-bullet (~> b
