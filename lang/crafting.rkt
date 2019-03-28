@@ -103,9 +103,14 @@
 ;---- Added icon-list parameter
 (define (crafting-list dialog-list icon-list pos #:sound [rsound #f])
   (define selection 0)
-  (define font-size 18)
-  (define dialog-list-sprite (draw-crafting-list dialog-list icon-list font-size selection))
-  (sprite->entity dialog-list-sprite
+  (define font-size 13)
+  ;(define dialog-list-sprite (draw-crafting-list dialog-list icon-list font-size selection))
+  (define dialog-list-sprites (fast-crafting-list dialog-list icon-list))
+  (define GAME-MAX-WIDTH (- (/ 480 10) 2))
+  (define MSG-MAX-WIDTH (apply max (map string-length dialog-list)))
+  (define MSG-WIDTH (min MSG-MAX-WIDTH GAME-MAX-WIDTH))
+  (define selection-width (* (+ MSG-WIDTH 2) 10))
+  (sprite->entity dialog-list-sprites
                   #:name       "crafting list"
                   #:position   pos
                   #:components (static)
@@ -114,7 +119,7 @@
                                (on-start (do-many (go-to-pos 'center)
                                                   show
                                                   (spawn (crafting-selection dialog-list
-                                                                             (image-width dialog-list-sprite)
+                                                                             selection-width
                                                                              font-size
                                                                              selection
                                                                              rsound) #:relative? #f)))
@@ -410,7 +415,7 @@
                                                          marshmallows-recipe))))
 
   
-  (define crafting-menu? (listof (or/c on-key? observe-change? precompiler?)))
+  (define crafting-menu? (listof (or/c on-key? observe-change? precompiler? sound-stream?)))
   (check-equal? (crafting-menu? test-menu) #t)
   (check-equal? (crafting-menu? test-menu2) #t)
   )
