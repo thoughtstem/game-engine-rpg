@@ -15,15 +15,8 @@
                    (posn 0 0)
                    #:sound select-sound))
   
-  (define dialog-selection-entity
-    (dialog-selection list-of-dialog
-                      (image-width (draw-dialog-list list-of-dialog 18 0))
-                      18
-                      0
-                      select-sound))
   (list
-   (precompiler dialog-list-entity
-                dialog-selection-entity)
+   (precompiler dialog-list-entity)
    (on-key talk-key #:rule (ready-to-speak-and-near? name)
            (do-many (set-counter 0)
                     (spawn dialog-list-entity #:relative? #f)

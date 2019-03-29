@@ -110,6 +110,11 @@
   (define MSG-MAX-WIDTH (apply max (map string-length dialog-list)))
   (define MSG-WIDTH (min MSG-MAX-WIDTH GAME-MAX-WIDTH))
   (define selection-width (* (+ MSG-WIDTH 2) 10))
+  (precompile! (crafting-selection dialog-list
+                                   selection-width
+                                   font-size
+                                   selection
+                                   rsound))
   (sprite->entity dialog-list-sprites
                   #:name       "crafting list"
                   #:position   pos
@@ -251,17 +256,9 @@
                    (posn 0 0)
                    ;(posn (/ WIDTH 2) (/ HEIGHT 2))
                    #:sound select-sound))
-
-  (define crafting-selection-entity
-    (crafting-selection crafting-options
-                        (image-width (draw-crafting-list crafting-options crafting-icons 18 0))
-                        18
-                        0
-                        select-sound))
   
   (flatten (list
-   (precompiler crafting-list-entity
-                crafting-selection-entity)
+   (precompiler crafting-list-entity)
    (sound-stream)
    (on-key open-key #:rule (and/r near-player?
                                   all-dialog-closed?)
