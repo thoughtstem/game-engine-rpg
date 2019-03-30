@@ -153,6 +153,8 @@
          get-stat
          set-stat
          change-stat
+         define-stat
+         
          divert-damage
          filter-damage-by-tag
          (rename-out (make-damager damager))
@@ -181,7 +183,12 @@
          subtract-by
          multiply-by
          divide-by
-         toast-entity)
+         toast-entity
+
+         change-health-by
+         set-health-to
+         change-shield-by
+         set-shield-to)
 
 (require game-engine)
 
@@ -414,22 +421,25 @@
 
 (define/contract (set-stat s e v)
   (-> (or/c string? symbol?) entity? number? entity?)
-  (set-storage (stat-name s) e (max 0 v)))
+  (define max-v (get-storage-data (~a "max-" (stat-name s)) e))
+  (set-storage (stat-name s) e (min max-v (max 0 v))))
 
 (define/contract (change-stat s e v)
   (-> (or/c string? symbol?) entity? number? entity?)
-  (set-stat s e (+ v (get-stat s e))))
+  (define max-v (get-storage-data (~a "max-" (stat-name s)) e))
+  (set-stat s e (min max-v (+ v (get-stat s e)))))
 
-(define/contract (init-stat s e v)
-  (-> (or/c string? symbol?) entity? number? entity?)
-  (add-component e
-                 (storage (stat-name s) v)))
+(define/contract (init-stat s e v mv)
+  (-> (or/c string? symbol?) entity? number? number? entity?)
+  (add-components e
+                  (storage (stat-name s) (min v mv))
+                  (storage (~a "max-" (stat-name s)) mv)))
 
 ;Could macroify the creation of these...
 
 (define-syntax-rule (define-stat name get set change init)
   (begin
-
+    (provide get set change init)
     (define/contract (get e)
       (-> (combatant-with-stat? (~a 'name)) number?)
       (get-stat (~a 'name) e))
@@ -442,12 +452,13 @@
       (-> (combatant-with-stat? (~a 'name)) number? combatant?)
       (change-stat (~a 'name) e v))
 
-    (define/contract (init e v)
+    (define/contract (init e v mv)
       (-> (and/c combatant?
                  (not (combatant-with-stat? (~a 'name))))
           number?
+          number?
           (combatant-with-stat? (~a 'name)))
-      (init-stat (~a 'name) e v))))
+      (init-stat (~a 'name) e v mv))))
 
 (define-stat health get-health set-health change-health init-health)
 (define-stat shield get-shield set-shield change-shield init-shield)
@@ -475,10 +486,11 @@
 
 
 
-(struct stat-config (name starting-value display-entity))
+(struct stat-config (name starting-value max-value display-entity))
 
-(define (make-stat-config n (starting-value 100) (display-entity (stat-progress-bar 'red)))
-  (stat-config n starting-value (display-entity n)))
+(define (make-stat-config n (starting-value 100) (display-entity (stat-progress-bar 'red))
+                          #:max-value [max-value 100])
+  (stat-config n starting-value max-value (display-entity n)))
 
 
 
@@ -538,8 +550,10 @@
 
 
 (define (default-health+shields-stats health shields)
-  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -40)))
-        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -48)))))
+  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -40))
+                          #:max-value health)
+        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -48))
+                          #:max-value health)))
 
 
 
@@ -600,7 +614,7 @@
 
   (foldl
    (λ(n a)
-     (init-stat (stat-config-name n) a (stat-config-starting-value n)))
+     (init-stat (stat-config-name n) a (stat-config-starting-value n) (stat-config-max-value n)))
    e-without-stats
    stats))
 
@@ -616,3 +630,21 @@
 
 (define (add-by num)
   (curryr + num))
+
+; === STAT HANDLERS ===
+(define (set-health-to amt)
+  (lambda (g e)
+    (set-health e (max 0 amt))))
+
+(define (change-health-by amt)
+  (lambda (g e)
+    (change-health e amt)))
+
+(define (set-shield-to amt)
+  (lambda (g e)
+    (set-shield e (max 0 amt))))
+
+(define (change-shield-by amt)
+  (lambda (g e)
+    (change-shield e amt)))
+
