@@ -8,12 +8,14 @@
 (define (player-dialog-with name
                             #:dialog-list  list-of-dialog
                             #:talk-key     [talk-key 'space]
+                            #:selection    [selection 0]
                             #:select-sound [select-sound #f]
                             #:open-sound   [open-sound #f])
   (define dialog-list-entity
     (dialog-list list-of-dialog
                    (posn 0 0)
-                   #:sound select-sound))
+                   #:selection    selection
+                   #:select-sound select-sound))
   
   (list
    (precompiler dialog-list-entity)
