@@ -98,106 +98,75 @@
                                 custom-components)))
 
 
-
+(define (get-selection-offset max-options box-height selection)
+  (* (- selection (/ (sub1 max-options) 2)) box-height))
 
 ;---- Added icon-list parameter
-(define (crafting-list dialog-list icon-list pos #:sound [rsound #f])
-  (define selection 0)
-  (define font-size 18)
-  (define dialog-list-sprite (draw-crafting-list dialog-list icon-list font-size selection))
-  (sprite->entity dialog-list-sprite
+(define (crafting-list dialog-list icon-list pos
+                       #:selection    [selection 0]
+                       #:select-sound [select-sound #f])
+  (define LINE-HEIGHT 24)
+  (define main-box-height (* LINE-HEIGHT (length dialog-list)))
+  (define dialog-list-sprites (fast-crafting-list dialog-list icon-list selection))
+
+  (define (next-option)
+    (lambda (g e)
+      (define new-index (modulo (add1 (get-counter e)) (length dialog-list)))
+      (define selection-box-sprite
+        (get-component e (curry component-eq? (get-storage-data "selection-box-sprite" e))))
+      
+      (define new-offset (+ (/ LINE-HEIGHT 2)
+                            (- (* new-index LINE-HEIGHT)
+                               (/ main-box-height 2))))
+      
+      (define new-selection-box-sprite
+        (set-y-offset new-offset selection-box-sprite))
+      (~> e
+          (update-entity _ (curry component-eq? selection-box-sprite) new-selection-box-sprite)
+          (update-entity _ counter? (counter new-index)))))
+
+  (define (previous-option)
+    (lambda (g e)
+      (define new-index (modulo (sub1 (get-counter e)) (length dialog-list)))
+      (define selection-box-sprite
+        (get-component e (curry component-eq? (get-storage-data "selection-box-sprite" e))))
+      
+      (define new-offset (+ (/ LINE-HEIGHT 2)
+                            (- (* new-index LINE-HEIGHT)
+                               (/ main-box-height 2))))
+      
+      (define new-selection-box-sprite
+        (set-y-offset new-offset selection-box-sprite))
+      (~> e
+          (update-entity _ (curry component-eq? selection-box-sprite) new-selection-box-sprite)
+          (update-entity _ counter? (counter new-index)))))
+  
+  (sprite->entity dialog-list-sprites
                   #:name       "crafting list"
                   #:position   pos
                   #:components (static)
                                (hidden)
                                (layer "ui")
-                               (on-start (do-many (go-to-pos 'center)
-                                                  show
-                                                  (spawn (crafting-selection dialog-list
-                                                                             (image-width dialog-list-sprite)
-                                                                             font-size
-                                                                             selection
-                                                                             rsound) #:relative? #f)))
-                               (on-key 'enter die)
-                               ))
-; ----
-
-(define (crafting-selection dialog-list max-width font-size selection rsound)
-  (define select-box
-    (overlay (rectangle (- max-width 14)
-                        (+ 4 (image-height (text "Blank" font-size "transparent")))
-                        "outline"
-                        (pen "white" 2 "solid" "butt" "bevel"))
-             (rectangle (- max-width 10)
-                        (+ 8 (image-height (text "Blank" font-size "transparent")))
-                        "outline"
-                        (pen "black" 4 "solid" "butt" "bevel"))))
-  (define box-height (image-height select-box))
-  (define offset (posn 0 (get-selection-offset (length dialog-list) box-height selection)))
-  (sprite->entity select-box
-                  #:name       "crafting selection"
-                  #:position   (posn 0 0) ;(posn (/ WIDTH 2) (+ (/ HEIGHT 2) (posn-y offset)))
-                  #:components (static)
-                               (hidden)
-                               (layer "ui")
                                (counter selection)
-                               (on-start show)
-                               (lock-to "crafting list" #:offset offset)
-                               ;(on-key 'space die)
+                               (storage "selection-box-sprite" (list-ref dialog-list-sprites (- (length dialog-list-sprites) 4)))
+                               (on-start (do-many (go-to-pos 'center)
+                                                  show))
                                (on-key 'enter die)
-                               (on-key 'up   (if rsound
-                                                 (do-many (previous-crafting-option dialog-list box-height)
-                                                          (play-sound-from "player" rsound))
-                                                 (previous-crafting-option dialog-list box-height)))
-                               (on-key 'down (if rsound
-                                                 (do-many (next-crafting-option dialog-list box-height)
-                                                          (play-sound-from "player" rsound))
-                                                 (next-crafting-option dialog-list box-height)))))
-
-(define (next-crafting-option dialog-list box-height)
-  (lambda (g e)
-    (define new-index (modulo (add1 (get-counter e)) (length dialog-list)))
-    (define offset (posn 0 (get-selection-offset (length dialog-list) box-height new-index)))
-    (update-entity (update-entity e lock-to? (lock-to "crafting list" #:offset offset))
-                   counter?
-                   (counter new-index))))
-
-(define (previous-crafting-option dialog-list box-height)
-  (lambda (g e)
-    (define new-index (modulo (sub1 (get-counter e)) (length dialog-list)))
-    (define offset (posn 0 (get-selection-offset (length dialog-list) box-height new-index)))
-    (update-entity (update-entity e lock-to? (lock-to "crafting list" #:offset offset))
-                   counter?
-                   (counter new-index))))
-
-(define (get-crafting-selection)
-  (lambda (g e)
-    (define selection (get-counter (get-entity "crafting selection" g)))
-    ;(displayln (~a "Crafting Selection: " selection))
-    (update-entity e counter? (counter selection))))
-
-(define (crafter p
-                 thing-to-build
-                 #:sprite     [sprite #f]
-                 #:build-time [build-time 0]
-                 #:show-info? [show-info? #f]
-                 #:rule       [rule (λ (g e) #t)]
-                 #:components [c #f] . custom-components)
-  (define as (if (procedure? thing-to-build)
-                 (get-component (thing-to-build) animated-sprite?)
-                 (get-component thing-to-build animated-sprite?)))
-  (crafting-chest p
-                  #:icon       (render as)
-                  #:sprite     sprite
-                  #:components (active-on-bg 0)
-                               (counter 0)
-                               (crafter-of thing-to-build #:build-time build-time #:show-info? #f #:rule rule #:selection 0)
-                               (cons c custom-components)))
+                               (on-key 'up   (if select-sound
+                                                 (do-many (previous-option)
+                                                          (play-sound-from "player" select-sound))
+                                                 (previous-option)))
+                               (on-key 'down (if select-sound
+                                                 (do-many (next-option)
+                                                          (play-sound-from "player" select-sound))
+                                                 (next-option)))
+                               ))
 
 (struct recipe (product build-time ingredients cost rule))
 
 (define (crafting-menu #:open-key [open-key 'space]
                        #:open-sound [open-sound #f]
+                       #:selection    [selection 0]
                        #:select-sound [select-sound #f]
                        #:recipe-list [r-list '()]
                        ;#:recipes r
@@ -216,12 +185,10 @@
         (λ (g e) #t)
         (apply and/r  rules-list)))
 
+
+  ; TODO: Pass along sprites as is instead of rendering.
   (define (recipe->icon r)
     (define recipe-item (recipe-product r))
-    #;(define as (if (procedure? recipe-item)
-                   (get-component (recipe-item) animated-sprite?)
-                   (get-component recipe-item animated-sprite?)))
-    #;(render as)
     (if (procedure? recipe-item)
         (draw-entity (recipe-item))
         (draw-entity recipe-item))
@@ -237,6 +204,8 @@
   (define crafting-icons
     (map recipe->icon all-recipes))
 
+  (apply precompile! (map (curryr scale-to-fit 24) crafting-icons))
+
   (define crafting-options
     (map recipe->name all-recipes))
 
@@ -244,19 +213,11 @@
     (crafting-list crafting-options
                    crafting-icons
                    (posn 0 0)
-                   ;(posn (/ WIDTH 2) (/ HEIGHT 2))
-                   #:sound select-sound))
-
-  (define crafting-selection-entity
-    (crafting-selection crafting-options
-                        (image-width (draw-crafting-list crafting-options crafting-icons 18 0))
-                        18
-                        0
-                        select-sound))
+                   #:selection    selection
+                   #:select-sound select-sound))
   
   (flatten (list
-   (precompiler crafting-list-entity
-                crafting-selection-entity)
+   (precompiler crafting-list-entity)
    (sound-stream)
    (on-key open-key #:rule (and/r near-player?
                                   all-dialog-closed?)
@@ -410,7 +371,7 @@
                                                          marshmallows-recipe))))
 
   
-  (define crafting-menu? (listof (or/c on-key? observe-change? precompiler?)))
+  (define crafting-menu? (listof (or/c on-key? observe-change? precompiler? sound-stream?)))
   (check-equal? (crafting-menu? test-menu) #t)
   (check-equal? (crafting-menu? test-menu2) #t)
   )
