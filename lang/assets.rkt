@@ -797,6 +797,27 @@
       objects-list
       (map reduce-quality objects-list)))
 
+(define (apply-image-function func e)
+  (define (apply-to-all-frames as)
+    (define new-frames (list->vector (map (compose fast-image
+                                                   func
+                                                   frame->image)
+                                          (vector->list (animated-sprite-frames as)))))
+    (struct-copy animated-sprite as [frames new-frames]
+                                    [o-frames new-frames]))
+  (define all-as (get-components e image-animated-sprite?))
+  (define new-as (map apply-to-all-frames
+                      all-as))
+  (define updated-e (if (get-storage "Top" e)
+                        (let ([new-top-entity (apply-image-function func (get-storage-data "Top" e))])
+                          (~> e
+                              (set-storage "Top" _ new-top-entity)
+                              (update-entity _ precompiler? (precompiler new-top-entity))))
+                        e))
+  (~> updated-e
+      (remove-components _ image-animated-sprite?)
+      (add-components _ new-as)))
+
 
 
 
