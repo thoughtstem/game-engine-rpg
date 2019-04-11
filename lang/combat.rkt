@@ -416,7 +416,7 @@
   (~a s "-stat"))
 
 (define/contract (get-stat s e)
-  (-> (or/c string? symbol?) entity? number?)
+  (-> (or/c string? symbol?) entity? (or/c number? #f))
   (get-storage-data (stat-name s) e))
 
 (define/contract (set-stat s e v)
@@ -441,7 +441,7 @@
   (begin
     (provide get set change init)
     (define/contract (get e)
-      (-> (combatant-with-stat? (~a 'name)) number?)
+      (-> entity? (or/c number? #f))
       (get-stat (~a 'name) e))
 
     (define/contract (set e v)
