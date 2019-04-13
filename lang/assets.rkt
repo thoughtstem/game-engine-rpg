@@ -797,7 +797,7 @@
       objects-list
       (map reduce-quality objects-list)))
 
-(define (apply-image-function func e)
+(define (apply-image-function func entity-or-sprite)
   (define (apply-to-all-frames as)
     (define new-frames (list->vector (map (compose fast-image
                                                    func
@@ -805,18 +805,32 @@
                                           (vector->list (animated-sprite-frames as)))))
     (struct-copy animated-sprite as [frames new-frames]
                                     [o-frames new-frames]))
-  (define all-as (get-components e image-animated-sprite?))
-  (define new-as (map apply-to-all-frames
-                      all-as))
-  (define updated-e (if (get-storage "Top" e)
-                        (let ([new-top-entity (apply-image-function func (get-storage-data "Top" e))])
-                          (~> e
-                              (set-storage "Top" _ new-top-entity)
-                              (update-entity _ precompiler? (precompiler new-top-entity))))
-                        e))
-  (~> updated-e
-      (remove-components _ image-animated-sprite?)
-      (add-components _ new-as)))
+  (define all-as (cond [(entity? entity-or-sprite) (get-components entity-or-sprite image-animated-sprite?)]
+                       [(image? entity-or-sprite) (new-sprite entity-or-sprite)]
+                       [((or/c animated-sprite?
+                               (listof animated-sprite?)) entity-or-sprite) entity-or-sprite]
+                       [else (error "That wasn't an entity or a sprite")])
+    )
+  (define new-as (if (animated-sprite? all-as)
+                     (apply-to-all-frames all-as)
+                     (map apply-to-all-frames
+                          all-as)))
+  (define updated-e (if (entity? entity-or-sprite)
+                        (let ([e entity-or-sprite])
+                          (if (get-storage "Top" e)
+                              (let ([new-top-entity (apply-image-function func (get-storage-data "Top" e))])
+                                (~> e
+                                    (set-storage "Top" _ new-top-entity)
+                                    (update-entity _ precompiler? (precompiler new-top-entity))))
+                              e))
+                        #f))
+  (cond [(entity? entity-or-sprite) (~> updated-e
+                                        (remove-components _ image-animated-sprite?)
+                                        (add-components _ new-as))]
+        [((or/c animated-sprite?
+                (listof animated-sprite?)) entity-or-sprite) new-as]
+        [else (error "What was that?!")])
+  )
 
 
 
