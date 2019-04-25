@@ -806,7 +806,8 @@
     (struct-copy animated-sprite as [frames new-frames]
                                     [o-frames new-frames]))
   (define all-as (cond [(entity? entity-or-sprite) (get-components entity-or-sprite image-animated-sprite?)]
-                       [(image? entity-or-sprite) (new-sprite entity-or-sprite)]
+                       [((or/c image?
+                               (listof image?)) entity-or-sprite) (new-sprite entity-or-sprite)]
                        [((or/c animated-sprite?
                                (listof animated-sprite?)) entity-or-sprite) entity-or-sprite]
                        [else (error "That wasn't an entity or a sprite")])
@@ -828,7 +829,9 @@
                                         (remove-components _ image-animated-sprite?)
                                         (add-components _ new-as))]
         [((or/c animated-sprite?
-                (listof animated-sprite?)) entity-or-sprite) new-as]
+                (listof animated-sprite?)
+                image?
+                (listof image?)) entity-or-sprite) new-as]
         [else (error "What was that?!")])
   )
 
