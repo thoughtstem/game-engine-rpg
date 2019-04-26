@@ -5,6 +5,11 @@
 
 (require game-engine)
 
+(define (npc-has-responses? name)
+  (lambda (g e)
+    (and (get-storage-data "dialog" (get-entity name g))
+         ((listof (listof animated-sprite?)) (get-storage-data "dialog" (get-entity name g))))))
+
 (define (player-dialog-with name
                             #:dialog-list  list-of-dialog
                             #:talk-key     [talk-key 'space]
@@ -19,7 +24,8 @@
   
   (list
    (precompiler dialog-list-entity)
-   (on-key talk-key #:rule (ready-to-speak-and-near? name)
+   (on-key talk-key #:rule (and/r (ready-to-speak-and-near? name)
+                                  (npc-has-responses? name))
            (do-many (set-counter 0)
                     (spawn dialog-list-entity #:relative? #f)
                     (play-sound open-sound)))))
