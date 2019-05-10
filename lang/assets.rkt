@@ -470,6 +470,113 @@
                                       (on-start spawn-top-from-storage))
                                 (cons c custom-components)))  )
 
+; === MORE ENVIRONMENT OBJECTS ===
+
+(define (random-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (new-sprite (first (shuffle (list (bitmap "images/brown-rock-large.png")
+                                                    (bitmap "images/brown-rock-medium.png")
+                                                    (bitmap "images/brown-rock-small.png")))))
+                  p
+                  #:name "Brown Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (random-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (new-sprite (first (shuffle (list (bitmap "images/gray-rock-large.png")
+                                                    (bitmap "images/gray-rock-medium.png")
+                                                    (bitmap "images/gray-rock-small.png")))))
+                  p
+                  #:name "Gray Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (large-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-large.png"))
+                  p
+                  #:name "Large Brown Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (medium-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-medium.png"))
+                  p
+                  #:name "Medium Brown Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (small-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-small.png"))
+                  p
+                  #:name "Small Brown Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (large-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-large.png"))
+                  p
+                  #:name "Large Gray Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (medium-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-medium.png"))
+                  p
+                  #:name "Medium Gray Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (small-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-small.png"))
+                  p
+                  #:name "Small Gray Rock"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (random-barrels [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (new-sprite (first (shuffle (list (bitmap "images/single-barrel.png")
+                                                    (bitmap "images/triple-barrels.png")))))
+                  p
+                  #:name "Barrel"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (barrel [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/single-barrel.png"))
+                  p
+                  #:name "Barrel"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+(define (barrels [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
+  (generic-entity (simple-sheet->sprite (bitmap "images/triple-barrels.png"))
+                  p
+                  #:name "Barrels"
+                  #:tile tile
+                  #:hue hue
+                  #:size size
+                  #:components (cons c custom-components)))
+
+
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (generic-entity (simple-sheet->sprite
                    (crop 0 0
