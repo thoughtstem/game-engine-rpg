@@ -219,7 +219,9 @@
          (effect _ d-amt)))))
 
 (define (toast-entity message #:color [color "yellow"]
-                              #:position [p (posn 0 -20)])
+                              #:position [p (posn 0 -20)]
+                              #:duration [dur 15]
+                              #:speed    [spd 3])
   (define color-symbol (if (string? color)
                            (string->symbol color)
                            color))
@@ -231,13 +233,13 @@
                                (new-sprite message #:color color-symbol)
                                (direction 270)
                                ;(physical-collider)
-                               (speed 3)
+                               (speed spd)
                                (on-start (do-many (random-direction 240 300)
-                                                  (random-speed 2 4)
+                                                  (random-speed (sub1 spd) (add1 spd))
                                                   show))
                                (every-tick (do-many (move)
                                                     (scale-sprite 1.05)))
-                               (after-time 15 die)))
+                               (after-time dur die)))
 
 (define (player-toast-entity message #:color [color "yellow"])
   (define color-symbol (if (string? color)
