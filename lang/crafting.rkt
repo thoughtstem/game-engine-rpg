@@ -2,6 +2,7 @@
 
 (provide (rename-out (make-recipe recipe))
          (except-out (struct-out recipe) recipe)
+         recipe-eq?
          recipe->system
          crafting-entity
          crafting-chest
@@ -164,6 +165,10 @@
 
 (struct recipe (product build-time ingredients cost rule))
 
+(define (recipe-eq? r1 r2)
+    (eq? (get-name (recipe-product r1))
+         (get-name (recipe-product r2))))
+
 (define (crafting-menu #:open-key [open-key 'space]
                        #:open-sound [open-sound #f]
                        #:selection    [selection 0]
@@ -262,12 +267,8 @@
   (define i-list (recipe-ingredients r))
   (define (remove-items g e1 e2)
     (if ((crafting? product-name) g e2)
-        (begin ;(displayln (~a "CRAFTING: " product-name))
-               ((apply do-many (map remove-item-by-name i-list)) g e2)
-                   #;((spawn (backpack-entity #:components (on-rule (crafting? product-name) die))
-                           #:relative? #f) g _))
-        (begin ;(displayln (~a "NOT CRAFTING: " product-name))
-               e2)))
+        ((apply do-many (map remove-item-by-name i-list)) g e2)
+        e2))
   (observe-change (crafting? product-name) remove-items))
 
 
