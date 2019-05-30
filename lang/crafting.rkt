@@ -10,18 +10,18 @@
          
          carrot-sprite
          carrot-entity
-         carrot-stew-entity
+         ;carrot-stew
          
          cauldron-sprite
          campfire-sprite
-         wood-table-sprite
+         woodtable-sprite
          fish-sprite
-         cooked-fish-sprite
+         cookedfish-sprite
          bowl-sprite
-         toasted-marshmallow-sprite
+         toastedmarshmallow-sprite
          smores-sprite
-         carrot-stew-sprite
-         fish-stew-sprite
+         carrotstew-sprite
+         fishstew-sprite
          
          consumable)
  
@@ -44,7 +44,7 @@
                         (bitmap "images/chests.png")))
   (generic-entity (if sprite
                       sprite
-                      (simple-sheet->sprite
+                      (new-sprite
                        (overlay (if (= (image-width icon) 0)
                                     icon
                                     (crafting-chest-icon icon chest-image))
@@ -286,22 +286,22 @@
                  #:columns 4
                  #:delay 4))
 
-(define wood-table-sprite
+(define woodtable-sprite
   (new-sprite (bitmap "images/wood-table.png")))
 
 (define carrot-sprite
   (new-sprite (bitmap "images/carrot.png")))
 
-(define carrot-stew-sprite
+(define carrotstew-sprite
   (new-sprite (bitmap "images/carrot-stew.png")))
 
 (define fish-sprite
   (new-sprite (bitmap "images/fish.png")))
 
-(define cooked-fish-sprite
+(define cookedfish-sprite
   (new-sprite (bitmap "images/cooked-fish.png")))
 
-(define toasted-marshmallow-sprite
+(define toastedmarshmallow-sprite
   (new-sprite (bitmap "images/toasted-marshmallow.png")))
 
 (define smores-sprite
@@ -310,7 +310,7 @@
 (define bowl-sprite
   (new-sprite (bitmap "images/bowl.png")))
 
-(define fish-stew-sprite
+(define fishstew-sprite
   (new-sprite (bitmap "images/fish-stew.png")))
 
 
@@ -336,13 +336,6 @@
                                        (do-many (respawn 'anywhere)
                                                 (active-on-random)))
                                ))
-  
-; === CRAFTING PRODUCTS ===
-(define (carrot-stew-entity)
-  (crafting-entity #:sprite     (new-sprite (bitmap "images/carrot-stew.png"))
-                   #:name       "Carrot Stew"
-                   #:components (consumable)
-                                (storable)))
 
 ; === FLATTEN TEST ====
 

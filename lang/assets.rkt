@@ -7,18 +7,6 @@
          game-engine
          "./combat.rkt")
 
-(define (simple-sheet->sprite i)
-  (sheet->sprite i
-                 #:rows       1
-                 #:columns    1
-                 #:row-number 1
-                 #:speed      0))
-
-
-;NOTE.  Don't use these assets in production.
-;  Copyright stuff.
-;  Educational use is fine...
-
 (define FOREST-BG
   (bitmap "images/lpc_forest.png"))
 
@@ -36,6 +24,10 @@
 
 (define barrel-set
   (bitmap "images/barrels.png"))
+
+;NOTE.  Don't use these assets in production.
+;  Copyright stuff.
+;  Educational use is fine...
 
 #|
 (define outdoor-set
@@ -334,7 +326,7 @@
 ;Other house set
 
 (define (player [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
-  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/player.png")))
+  (generic-entity (new-sprite (scale 0.75 (bitmap "images/player.png")))
                   p
                   #:name "Player"
                   #:tile tile
@@ -343,7 +335,7 @@
                   #:components (cons c custom-components))  )
 
 (define (npc [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
-  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/npc.png")))
+  (generic-entity (new-sprite (scale 0.75 (bitmap "images/npc.png")))
                   p
                   #:name "NPC"
                   #:tile tile
@@ -352,7 +344,7 @@
                   #:components (cons c custom-components))  )
 
 (define (stone-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components )
-  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/stone-house.png")))
+  (generic-entity (new-sprite (scale 0.75 (bitmap "images/stone-house.png")))
                   p
                   #:name "Stone House"
                   #:tile tile
@@ -361,7 +353,7 @@
                   #:components (cons c custom-components))  )
 
 (define (wood-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (scale 0.75 (bitmap "images/wood-house.png")))
+  (generic-entity (new-sprite (scale 0.75 (bitmap "images/wood-house.png")))
                   p
                   #:name "Wood House"
                   #:tile tile
@@ -370,7 +362,7 @@
                   #:components (cons c custom-components))  )
 
 (define (brick-house [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/brick-house.png"))
+  (generic-entity (new-sprite (bitmap "images/brick-house.png"))
                   p
                   #:name "Brick House"
                   #:tile tile
@@ -392,7 +384,7 @@
                                  (active-on-bg tile)
                                  (hue-val hue)
                                  (size-val size)))
-  (generic-entity (simple-sheet->sprite (bitmap "images/round-tree-trunk.png"))
+  (generic-entity (new-sprite (bitmap "images/round-tree-trunk.png"))
                   p
                   #:name "Round Tree Trunk"
                   #:tile tile
@@ -414,7 +406,7 @@
                                  (active-on-bg tile)
                                  (hue-val hue)
                                  (size-val size)))
-  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree-trunk.png"))
+  (generic-entity (new-sprite (bitmap "images/pine-tree-trunk.png"))
                   p
                   #:name "Pine Tree Trunk"
                   #:tile tile
@@ -436,7 +428,7 @@
                                  (active-on-bg tile)
                                  (hue-val hue)
                                  (size-val size)))
-  (generic-entity (simple-sheet->sprite (bitmap "images/pine-tree-trunk.png"))
+  (generic-entity (new-sprite (bitmap "images/pine-tree-trunk.png"))
                   p
                   #:name "Pine Tree Trunk"
                   #:tile tile
@@ -458,7 +450,7 @@
                      (active-on-bg tile)
                      (hue-val hue)
                      (size-val size)))
-  (generic-entity (simple-sheet->sprite (bitmap "images/candy-cane-base.png"))
+  (generic-entity (new-sprite (bitmap "images/candy-cane-base.png"))
                   p
                   #:name "Candy Cane Base"
                   #:tile tile
@@ -495,7 +487,7 @@
                   #:components (cons c custom-components)))
 
 (define (large-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-large.png"))
+  (generic-entity (new-sprite (bitmap "images/brown-rock-large.png"))
                   p
                   #:name "Large Brown Rock"
                   #:tile tile
@@ -504,7 +496,7 @@
                   #:components (cons c custom-components)))
 
 (define (medium-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-medium.png"))
+  (generic-entity (new-sprite (bitmap "images/brown-rock-medium.png"))
                   p
                   #:name "Medium Brown Rock"
                   #:tile tile
@@ -513,7 +505,7 @@
                   #:components (cons c custom-components)))
 
 (define (small-brown-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/brown-rock-small.png"))
+  (generic-entity (new-sprite (bitmap "images/brown-rock-small.png"))
                   p
                   #:name "Small Brown Rock"
                   #:tile tile
@@ -522,7 +514,7 @@
                   #:components (cons c custom-components)))
 
 (define (large-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-large.png"))
+  (generic-entity (new-sprite (bitmap "images/gray-rock-large.png"))
                   p
                   #:name "Large Gray Rock"
                   #:tile tile
@@ -531,7 +523,7 @@
                   #:components (cons c custom-components)))
 
 (define (medium-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-medium.png"))
+  (generic-entity (new-sprite (bitmap "images/gray-rock-medium.png"))
                   p
                   #:name "Medium Gray Rock"
                   #:tile tile
@@ -540,7 +532,7 @@
                   #:components (cons c custom-components)))
 
 (define (small-gray-rock [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/gray-rock-small.png"))
+  (generic-entity (new-sprite (bitmap "images/gray-rock-small.png"))
                   p
                   #:name "Small Gray Rock"
                   #:tile tile
@@ -559,7 +551,7 @@
                   #:components (cons c custom-components)))
 
 (define (barrel [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/single-barrel.png"))
+  (generic-entity (new-sprite (bitmap "images/single-barrel.png"))
                   p
                   #:name "Barrel"
                   #:tile tile
@@ -568,7 +560,7 @@
                   #:components (cons c custom-components)))
 
 (define (barrels [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite (bitmap "images/triple-barrels.png"))
+  (generic-entity (new-sprite (bitmap "images/triple-barrels.png"))
                   p
                   #:name "Barrels"
                   #:tile tile
@@ -578,7 +570,7 @@
 
 
 (define (chest [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
-  (generic-entity (simple-sheet->sprite
+  (generic-entity (new-sprite
                    (crop 0 0
                         32 32
                         (bitmap "images/chests.png")))
@@ -591,7 +583,7 @@
 
 ;MISC from LPC
 
-(define LAVA-SPRITE (bitmap "images/lava.png"))
+(define lava-sprite (bitmap "images/lava.png"))
 
 ; ==== MISC SHEETS =====
 (define CAT-SHEET        (bitmap "images/cat-sprite.png"))
@@ -609,14 +601,14 @@
                  #:row-number 1
                  #:speed      3))
 
-(define black-cat-sprite
+(define blackcat-sprite
   (sheet->sprite  BLACK-CAT-SHEET
                   #:rows       4
                   #:columns    3
                   #:row-number 1
                   #:speed      3))
 
-(define white-cat-sprite
+(define whitecat-sprite
   (sheet->sprite WHITE-CAT-SHEET 
                  #:rows       4
                  #:columns    3
@@ -661,7 +653,7 @@
                   #:components (cons c custom-components)))
 
 (define (black-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity black-cat-sprite
+  (generic-entity blackcat-sprite
                   p
                   #:name "Black Cat"
                   #:tile tile
@@ -670,7 +662,7 @@
                   #:components (cons c custom-components)))
 
 (define (white-cat [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components)
-  (generic-entity white-cat-sprite
+  (generic-entity whitecat-sprite
                   p
                   #:name "White Cat"
                   #:tile tile
@@ -713,11 +705,11 @@
 (define STEAK-SHEET   (bitmap "images/steak-sprite.png"))
 
 ;==== FOOD SPRITES ====
-(define apples-sprite  (simple-sheet->sprite APPLES-SHEET))
+(define apples-sprite  (new-sprite APPLES-SHEET))
 
-(define cherry-sprite  (simple-sheet->sprite CHERRY-SHEET))
+(define cherry-sprite  (new-sprite CHERRY-SHEET))
 
-(define steak-sprite   (simple-sheet->sprite STEAK-SHEET))
+(define steak-sprite   (new-sprite STEAK-SHEET))
 
 ;==== FOOD ENTITIES ====
 (define (apples [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components [c #f] . custom-components)
@@ -744,24 +736,24 @@
                                  #:columns  8
                                  #:delay    2))
 
-(define copper-coin-sprite
+(define coppercoin-sprite
   (sheet->sprite (bitmap "images/copper-coin.png") 
                                  #:columns  8
                                  #:delay    2))
 
-(define silver-coin-sprite
+(define silvercoin-sprite
   (sheet->sprite (bitmap "images/silver-coin.png") 
                                  #:columns  8
                                  #:delay    2))
 
-(define gold-coin-sprite
+(define goldcoin-sprite
   (sheet->sprite (bitmap "images/gold-coin.png") 
                                  #:columns  8
                                  #:delay    2))
 
 
 ; ==== COIN ENTITIES ====
-(define (coin-entity)
+(define (coin)
   (sprite->entity (sheet->sprite (bitmap "images/coin.png") 
                                  #:columns  8
                                  #:delay    2)
@@ -771,7 +763,7 @@
                                (physical-collider)
                                ))
 
-(define (copper-coin-entity)
+(define (copper-coin)
   (sprite->entity (sheet->sprite (bitmap "images/copper-coin.png") 
                                  #:columns  8
                                  #:delay    2)
@@ -781,7 +773,7 @@
                                (physical-collider)
                                ))
 
-(define (silver-coin-entity)
+(define (silver-coin)
   (sprite->entity (sheet->sprite (bitmap "images/silver-coin.png") 
                                  #:columns  8
                                  #:delay    2)
@@ -791,7 +783,7 @@
                                (physical-collider)
                                ))
 
-(define (gold-coin-entity)
+(define (gold-coin)
   (sprite->entity (sheet->sprite (bitmap "images/gold-coin.png") 
                                  #:columns  8
                                  #:delay    2)
