@@ -17,10 +17,10 @@
 
          ;custom-particles
          
-         (rename-out (spear-sprite spear-bullet-sprite))
-         (rename-out (SWORD-ICON sword-sprite))
-         (rename-out (swinging-sword-sprite sword-bullet-sprite))
-         (rename-out (PAINT-THROWER-ICON paint-thrower-sprite))
+         ;(rename-out (spear-sprite spear-bullet-sprite))
+         ;(rename-out (SWORD-ICON sword-sprite))
+         ;(rename-out (swinging-sword-sprite sword-bullet-sprite))
+         ;(rename-out (PAINT-THROWER-ICON paint-thrower-sprite))
          
          spear-sprite
          swinging-sword-sprite
