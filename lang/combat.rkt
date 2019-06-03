@@ -59,7 +59,7 @@
                                base-player))
 
     (check-combatant-takes-damage? player
-                                   (damager 10 '(team-a))
+                                   (make-damager 10 '(team-a))
                                    #:final-health 100
                                    "Taking 10 damage from something 'on your team' should not remove health"))
 
@@ -128,7 +128,7 @@
                               base-player))
 
     (check-combatant-takes-damage? player
-                                   (damager 10 '(my-team bullet))
+                                   (make-damager 10 '(my-team bullet))
                                    #:final-health 100
                                    #:final-shield 100
                                    (~a "Should not take friendly fire"))
@@ -143,7 +143,7 @@
                               base-player))
 
     (check-combatant-takes-damage? player
-                                   (damager 10 '(enemy-team bullet))
+                                   (make-damager 10 '(enemy-team bullet))
                                    #:final-health 100
                                    #:final-shield 90
                                    (~a "Should not take friendly fire")) ))
@@ -158,13 +158,13 @@
          divert-damage
          filter-damage-by-tag
          (rename-out (make-damager damager))
+         (except-out (struct-out damager) damager)
          damager-amount
          set-damager-amount
          damager-tags
          damager-has-tag?
-         damager?
-         damage-processor
-         damage-processor?
+         ;damager?
+         (struct-out damage-processor)
          conditional-damage-processor
          
          no-progress-bar
@@ -193,11 +193,11 @@
 (require game-engine)
 
 
-(struct damager          (amount tags) #:transparent)
+(component damager          (amount tags) #:transparent)
 (struct damage-processor (f))
 
 (define (make-damager amount (tags '()))
-  (damager amount tags))
+  (new-damager amount tags))
 
 (define (make-damage-processor f)
   (damage-processor f))
