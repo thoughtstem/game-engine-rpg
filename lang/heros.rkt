@@ -5,12 +5,13 @@
          racket/runtime-path)
 
 
+#;
 (provide basic-hero)
 
 (define-runtime-path images-path "images")
 
 
-
+#;
 (define (basic-hero p)
 
   (define hero-costume
