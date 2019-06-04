@@ -731,10 +731,10 @@
 (define GOLD-COIN-SHEET   (bitmap "images/gold-coin.png"))
 
 ; ==== COIN SPRITES ====
-(define coin-sprite
-  (sheet->sprite (bitmap "images/coin.png") 
-                                 #:columns  8
-                                 #:delay    2))
+;(define coin-sprite
+;  (sheet->sprite (bitmap "images/coin.png") 
+;                                 #:columns  8
+;                                 #:delay    2))
 
 (define coppercoin-sprite
   (sheet->sprite (bitmap "images/copper-coin.png") 

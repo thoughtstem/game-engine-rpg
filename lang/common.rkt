@@ -21,6 +21,7 @@
          (all-from-out "./weapon.rkt")
          (all-from-out "./crafting.rkt")
          (all-from-out "./avatar-assets.rkt")
+         (rename-out (goldcoin-sprite coin-sprite))
          )
 
 (require 2htdp/image)
