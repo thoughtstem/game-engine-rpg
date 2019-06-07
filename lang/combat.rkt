@@ -67,8 +67,8 @@
   ;Combatants can start with a different level of health
   (let ()
     (define player (combatant base-player
-                              #:stats (list (make-stat-config 'health 50  (stat-progress-bar 'red))
-                                            (make-stat-config 'shield 100 (stat-progress-bar 'blue)))))
+                              #:stats (list (make-stat-config 'health 50  (stat-progress-bar-system 'red))
+                                            (make-stat-config 'shield 100 (stat-progress-bar-system 'blue)))))
 
     (check-combatant-takes-damage? player
                                    take-10-damage
@@ -150,6 +150,7 @@
 
 
 (provide combatant
+         player-combatant
          get-stat
          set-stat
          change-stat
@@ -169,7 +170,8 @@
          
          no-progress-bar
          make-stat-config
-         stat-progress-bar
+         stat-progress-bar        ;stat-bar entity used for player-combatant
+         stat-progress-bar-system ;stat-bar system used for enemy combatants
          add-damager-tag
          remove-damager-tag
 
@@ -490,12 +492,49 @@
 
 (struct stat-config (name starting-value max-value display-entity))
 
-(define (make-stat-config n (starting-value 100) (display-entity (stat-progress-bar 'red))
+(define (make-stat-config n
+                          [starting-value 100]
+                          [display-system (stat-progress-bar-system 'red)]
                           #:max-value [max-value 100])
-  (stat-config n starting-value max-value (display-entity n)))
+  (stat-config n starting-value max-value (display-system n)))
 
+; ======== NEW PROGRESS BAR SPRITE =====
+(define (stat-progress-bar-system color
+                           #:max    [max 100]
+                           #:offset [p (posn 0 -20)]
+                           #:width  [w 26]
+                           #:height [h 5]
+                           #:after  [f identity] ;For modifying the entity, e.g. removing lock-to?
+                           )
+  (λ(stat-name)
+    (define (displayer sn)
+      (abstract-progress-bar-system #:color color
+                                    #:max   max
+                                    #:width  w
+                                    #:height h
+                                    #:stat-name sn
+                                    #:offset p
+                                    ))
+      
+      #|(define (safe-get-stat n e)
+        (if e
+            (get-stat n e)
+            0))
 
+      (displayln (~a "STAT-NAME: " stat-name))
 
+      (define data-source
+        (λ(g)
+          (~> g
+              (find-combatant _)
+              (safe-get-stat stat-name _))))|#
+    
+      (f (displayer stat-name))
+      ))
+
+; ================================
+
+; ========= REFACTOR THIS ========
 ;This is admittedly a mess, but this is what you would
 ; change to make a new kind of progress bar display
 (define (stat-progress-bar color
@@ -536,25 +575,28 @@
         (add-component _ (lock-to find-combatant
                                   #:offset p))))
       )))
-
+; ==========================
 
 
 (define (no-progress-bar)
  (λ(stat-name)
-    (λ(find-combatant)
+   #f ; dummy component
+    #|(λ(find-combatant)
       (~>
-       (sprite->entity empty-image
-                       #:position (posn 0 0)
-                       #:name "null"
-                       #:components
-                       (on-start die))
-       (add-component _ (lock-to find-combatant))))))
+         (sprite->entity empty-image
+                         #:position (posn 0 0)
+                         #:name "null"
+                         #:components
+                         (on-start die))
+         (add-component _ (lock-to find-combatant)))
+      )|#
+   ))
 
 
 (define (default-health+shields-stats health shields)
-  (list (make-stat-config 'health health (stat-progress-bar 'green #:max health #:offset (posn 0 -40))
+  (list (make-stat-config 'health health (stat-progress-bar-system 'green #:max health #:offset (posn 0 -40))
                           #:max-value health)
-        (make-stat-config 'shield shields (stat-progress-bar 'deepskyblue #:max shields #:offset (posn 0 -48))
+        (make-stat-config 'shield shields (stat-progress-bar-system 'deepskyblue #:max shields #:offset (posn 0 -48))
                           #:max-value health)))
 
 
@@ -568,24 +610,93 @@
         #:stats (listof stat-config?))
        combatant?)
 
-  (define combatant-id (random 100000))
+  (define combatant-id (random 100000)) ;Do I need this anymore?
 
-  (define find-combatant #;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
+  #;(define find-combatant ;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
     (λ(g)
-      #;(displayln (~a "finding combatant " ))
+      ;(displayln (~a "finding combatant " ))
 
       ;Old, slow way
-      #;(current-version-of original-e g)
-
-
+      ;(current-version-of original-e g)
 
       ;New, faster way?  Wait... seems to be broken, not sure why...
-      (find-entity-by-id (entity-id original-e) g)))
+      (find-entity-by-id (entity-id original-e) g)
+      
+      )) ;New, fastest way is to not have to find the entity at all!
 
-  (define bars
+  (define bar-systems ; LIST OF COMPONENTS
     (map
      (λ(stat)
-       ((stat-config-display-entity stat) find-combatant))
+       ;((stat-config-display-entity stat) find-combatant)
+       (stat-config-display-entity stat)
+       )
+     stats))
+
+  (define (update-bar-sprite s v mv)
+    (define percentage (/ v mv))
+    (define max-bar-width (get-x-scale s))
+    (define bar-width (* percentage max-bar-width))
+    (~> s
+        (set-x-scale bar-width _)
+        (set-x-offset (/ (- bar-width max-bar-width) 2) _)))
+
+  (define (update-bars g e)
+    (define (update-bar stat)
+      (lambda (g e)
+        (define stat-name (stat-config-name stat))
+        (displayln (~a "UPDATE-BARS STAT-NAME: " stat-name))
+        (define main-sprite (get-storage-data (~a stat-name "-main-sprite") e))
+        (if main-sprite
+            (let ([stat-value (get-stat stat-name e)]
+                  [max-value  (stat-config-max-value stat)])
+              (update-entity e (curry component-eq? main-sprite)
+                             (update-bar-sprite main-sprite stat-value max-value)))
+            e)))
+    ((apply do-many (map update-bar stats)) g e))
+  
+  (define e-without-stats
+    (add-components original-e
+                    (flatten
+                     (list (storage "combatant-id" combatant-id)
+                           (on-collide (has-component? damager?) (do-many take-damage
+                                                                          update-bars)) 
+                           ;on-start-spawn-bars
+                           bar-systems
+                           dp))))
+  (foldl
+   (λ(n a)
+     (init-stat (stat-config-name n) a (stat-config-starting-value n) (stat-config-max-value n)))
+   e-without-stats
+   stats))
+
+(define/contract (player-combatant original-e
+                                   #:damage-processor  (dp     (simple-numeric-damage))
+                                   #:stats             (stats  (default-health+shields-stats 100 100)))
+
+  (->* (entity?)
+       (#:damage-processor damage-processor?
+        #:stats (listof stat-config?))
+       combatant?)
+
+  (define combatant-id (random 100000)) ;Do I need this anymore?
+
+  (define find-combatant ;(curry entity-with-storage "combatant-id" combatant-id) ;This is too slow
+    (λ(g)
+      ;(displayln (~a "finding combatant " ))
+
+      ;Old, slow way
+      ;(current-version-of original-e g)
+
+      ;New, faster way?  Wait... seems to be broken, not sure why...
+      (find-entity-by-id (entity-id original-e) g)
+      
+      ))
+
+  (define bars ; LIST OF ENTITIES
+    (map
+     (λ(stat)
+       ((stat-config-display-entity stat) find-combatant)
+       )
      stats))
   
   (define on-start-spawn-bars
@@ -594,14 +705,12 @@
        (if (eq? (get-name b) "null")
            #f
            (on-start (spawn-on-current-tile (add-components b
-                                                         (on-rule (λ (g e) (not (find-combatant g)))
+                                                            (on-rule (λ (g e) (not (find-combatant g)))
                                                                  
-                                                                 (do-many
-                                                                  die)
-
-
-                                                                 )))
-                 )))
+                                                                     (do-many
+                                                                      die)
+                                                                     )))
+                     )))
      bars))
   
   (define e-without-stats
@@ -610,6 +719,7 @@
                      (list (storage "combatant-id" combatant-id)
                            (on-collide (has-component? damager?) take-damage) 
                            on-start-spawn-bars
+                           ;bar-systems
                            dp))))
 
 
