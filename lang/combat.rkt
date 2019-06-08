@@ -185,7 +185,6 @@
          subtract-by
          multiply-by
          divide-by
-         toast-entity
 
          change-health-by
          set-health-to
@@ -193,7 +192,6 @@
          set-shield-to)
 
 (require game-engine)
-
 
 (component damager          (amount tags) #:transparent)
 (struct damage-processor (f))
@@ -219,50 +217,6 @@
          ((play-sound hit-sound) g _)
          ((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
          (effect _ d-amt)))))
-
-(define (toast-entity message #:color [color "yellow"]
-                              #:position [p (posn 0 -20)]
-                              #:duration [dur 15]
-                              #:speed    [spd 3])
-  (define color-symbol (if (string? color)
-                           (string->symbol color)
-                           color))
-  (sprite->entity (new-sprite message #:x-offset -1 #:y-offset 1 #:color 'black)
-                  #:name       "player toast"
-                  #:position   p
-                  #:components (hidden)
-                               (layer "ui")
-                               (new-sprite message #:color color-symbol)
-                               (direction 270)
-                               ;(physical-collider)
-                               (speed spd)
-                               (on-start (do-many (random-direction 240 300)
-                                                  (random-speed (sub1 spd) (add1 spd))
-                                                  show))
-                               (every-tick (do-many (move)
-                                                    (scale-sprite 1.05)))
-                               (after-time dur die)))
-
-(define (player-toast-entity message #:color [color "yellow"])
-  (define color-symbol (if (string? color)
-                           (string->symbol color)
-                           color))
-  (sprite->entity (new-sprite message #:x-offset -1 #:y-offset 1 #:color 'black)
-                  #:name       "player toast"
-                  #:position   (posn 0 0)
-                  #:components (hidden)
-                               (layer "ui")
-                               (new-sprite message #:color color-symbol)
-                               (direction 270)
-                               ;(physical-collider)
-                               (speed 3)
-                               (on-start (do-many (go-to-entity "player" #:offset (posn 0 -20))
-                                                  (random-direction 240 300)
-                                                  (random-speed 2 4)
-                                                  show))
-                               (every-tick (do-many (move)
-                                                    (scale-sprite 1.05)))
-                               (after-time 15 die)))
 
 (define (filter-damage-by-tag #:do (effect change-health)
                               #:adj (adj identity)

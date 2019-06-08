@@ -153,6 +153,7 @@
                                (on-start (do-many (go-to-pos 'center)
                                                   show))
                                (on-key 'enter die)
+                               (on-key 'backspace die)
                                (on-key 'up   (if select-sound
                                                  (do-many (previous-option)
                                                           (play-sound-from "player" select-sound))
@@ -234,6 +235,7 @@
    (for/list ([i (range 0 (length all-recipes))]
               [j all-recipes])
      (crafter-of (recipe-product j)
+                 #:ingredients (recipe-ingredients j)
                  #:build-time (recipe-build-time j)
                  #:show-info? #f
                  #:rule (and/r (ingredients-list->rule (recipe-ingredients j))
@@ -268,7 +270,8 @@
   (define (remove-items g e1 e2)
     (if ((crafting? product-name) g e2)
         ((apply do-many (map remove-item-by-name i-list)) g e2)
-        e2))
+        e2
+        ))
   (observe-change (crafting? product-name) remove-items))
 
 
