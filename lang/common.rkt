@@ -20,6 +20,8 @@
          (all-from-out "./combat.rkt")
          (all-from-out "./weapon.rkt")
          (all-from-out "./crafting.rkt")
+         (all-from-out "./avatar-assets.rkt")
+         (rename-out (goldcoin-sprite coin-sprite))
          )
 
 (require 2htdp/image)
@@ -33,6 +35,7 @@
 (require "./crafting.rkt")
 (require "./combat.rkt")
 (require "./weapon.rkt")
+(require "./avatar-assets.rkt")
 
 
 (module+ test

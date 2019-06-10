@@ -14,5 +14,6 @@
 
 (define deps '(
   "https://github.com/thoughtstem/game-engine.git"
+  "https://github.com/thoughtstem/TS-Kata-Collections.git?path=ts-kata-util"
 ))
 
