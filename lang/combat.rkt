@@ -300,7 +300,7 @@
     (define first-damage (adj1 (damager-amount a-damager)))
 
     ;(displayln (~a "first-damage " first-damage))
-    (displayln (~a "FINAL DAMAGE AMOUNT: " first-damage))
+    ;(displayln (~a "FINAL DAMAGE AMOUNT: " first-damage))
 
     (define first-stat-amount (get-stat stat1 an-entity))
 
@@ -308,17 +308,22 @@
 
     (define second-damage (adj2 leftover-damage))
 
+    (define hit-img (square 1 'solid (make-color 255 255 0 255)))
+    (precompile! hit-img)
     ;(displayln (~a "second-damage " second-damage))
-    (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
-                                            #:scale-each-tick 1
-                                            #:particle-time-to-live 2
-                                            #:system-time-to-live 5))
+    (define hit-particles (particle-system #:sprite (new-sprite hit-img
+                                                                 #:scale 4)
+                                            #:scale-each-tick 1                 ; 1
+                                            #:particle-time-to-live 2           ; 2
+                                            #:system-time-to-live 5))           ; 5 
     (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
              ((play-sound hit-sound) g _)
-             ((spawn-on-current-tile hit-particles) g _)
-             ((spawn (toast-entity (~a (- first-damage)) #:color "orangered") #:relative? #t) g _)
+             ;((spawn-on-current-tile hit-particles) g _)
+             ;((spawn (toast-entity (~a (- first-damage)) #:color "orangered") #:relative? #t) g _)
+             (add-components _ hit-particles)
+             (add-components _ (toast-system (~a (- first-damage)) #:color "orangered"))
              (change-stat stat1 _ (- first-damage))
              (change-stat stat2 _ (- second-damage)))))
 
@@ -514,7 +519,7 @@
             (get-stat n e)
             0))
 
-      (displayln (~a "STAT-NAME: " stat-name))
+      ;(displayln (~a "STAT-NAME: " stat-name))
 
       (define data-source
         (λ(g)
@@ -598,7 +603,7 @@
     (define (update-bar stat)
       (lambda (g e)
         (define stat-name (stat-config-name stat))
-        (displayln (~a "UPDATE-BARS STAT-NAME: " stat-name))
+        ;(displayln (~a "UPDATE-BARS STAT-NAME: " stat-name))
         (define main-sprite (get-storage-data (~a stat-name "-main-sprite") e))
         (if main-sprite
             (let ([stat-value (get-stat stat-name e)]
