@@ -210,12 +210,20 @@
 (define (simple-numeric-damage #:do (effect change-health) #:adj (adj identity) #:hit-sound (hit-sound #f))
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (define hit-particles default-combat-particles)
+     (define hit-img (square 1 'solid (make-color 255 255 0 255)))
+     (precompile! hit-img)
+     (define hit-particles (particle-system #:sprite (new-sprite hit-img
+                                                                #:scale 4)
+                                            #:scale-each-tick 1                 ; 1
+                                            #:particle-time-to-live 2           ; 2
+                                            #:system-time-to-live 5))           ; 5 
      (define d-amt (- (adj (damager-amount a-damager))))
      (~> an-entity
-         ((spawn-on-current-tile hit-particles) g _)
+         ;((spawn-on-current-tile hit-particles) g _)
          ((play-sound hit-sound) g _)
-         ((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
+         ;((spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t) g _)
+         (add-components _ hit-particles)
+         (add-components _ (toast-system (~a d-amt) #:color "orangered"))
          (effect _ d-amt)))))
 
 (define (filter-damage-by-tag #:do (effect change-health)
@@ -225,19 +233,30 @@
                               #:hit-sound [hit-sound #f])
   (make-damage-processor
    (λ(g an-entity a-damager)
-     (define hit-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
-                                             #:scale-each-tick 1
-                                             #:particle-time-to-live 2
-                                             #:system-time-to-live 5))
+     (define hit-img (square 1 'solid (make-color 255 255 0 255)))
+     (precompile! hit-img)
+     (define hit-particles (particle-system #:sprite (new-sprite hit-img
+                                                                #:scale 4)
+                                            #:scale-each-tick 1                 ; 1
+                                            #:particle-time-to-live 2           ; 2
+                                            #:system-time-to-live 5))           ; 5 
      (define d-amt (- (adj (damager-amount a-damager))))
      (if (should-filter-out? a-damager tag )
          an-entity
          (~> an-entity
-             ((if sd?
-                  (spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t)
-                  (λ (g e) e)) g _)
              ((play-sound hit-sound) g _)
-             ((spawn-on-current-tile hit-particles) g _)
+             ;((if sd?
+             ;     (spawn (toast-entity (~a d-amt) #:color "orangered") #:relative? #t)
+             ;     (λ (g e) e)) g _)
+             
+             (add-components _ hit-particles)
+             
+             ((if sd?
+                 (λ(g e)
+                   (add-components e (toast-system (~a d-amt) #:color "orangered")))
+                 (λ (g e) e)) g _)
+             
+             ;((spawn-on-current-tile hit-particles) g _)
              (effect _ (- (adj (damager-amount a-damager)))))))))
 
 (define (should-filter-out? d tag)
@@ -312,7 +331,7 @@
     (precompile! hit-img)
     ;(displayln (~a "second-damage " second-damage))
     (define hit-particles (particle-system #:sprite (new-sprite hit-img
-                                                                 #:scale 4)
+                                                                #:scale 4)
                                             #:scale-each-tick 1                 ; 1
                                             #:particle-time-to-live 2           ; 2
                                             #:system-time-to-live 5))           ; 5 
