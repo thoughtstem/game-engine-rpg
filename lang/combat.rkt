@@ -202,7 +202,7 @@
 (define (make-damage-processor f)
   (damage-processor f))
 
-(define default-combat-particles (custom-particles #:sprite (square 4 'solid (make-color 255 255 0 255))
+(define default-combat-particles (custom-particles #:sprite (new-sprite (square 1 'solid (make-color 255 255 0 255)) #:scale 4)
                                                    #:scale-each-tick 1
                                                    #:particle-time-to-live 2
                                                    #:system-time-to-live 5))
