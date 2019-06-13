@@ -872,8 +872,48 @@
 (define (reduce-quality-by factor e)
   (reduce-quality e #:by factor))
 
-(define (make-world-objects object1 object2 #:random-color? [rc? #f] #:hd? [hd? #f])
-  (define objects-list (list
+; This will generate handplaced objects of 2 different types
+; They are intended for a world size of 1440 by 1080
+; Works best with these bgs: LAVA-BG, FOREST-BG, SNOW-BG, PINK-BG
+(define (make-world-objects object1 object2
+                            #:random-color? [rc? #f]
+                            #:hd? [hd? #f]
+                            #:rows [rows 3]
+                            #:columns [cols 3]
+                            )
+  (define GW (/ 1440 cols))
+  (define GH (/ 1080 rows))
+
+  (define (get-tile p)
+    (+ (min cols (floor (/ (posn-x p) GW)))
+       (* cols (min rows (floor (/ (posn-y p) GH))))))
+
+  (define (translate p)
+    (posn (modulo (posn-x p) GW)
+          (modulo (posn-y p) GH)))
+  
+  (define objects-list
+    (list
+     (object1 (translate (posn 35   270)) #:tile (get-tile (posn 35   270)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 181  328)) #:tile (get-tile (posn 181  328)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 349  318)) #:tile (get-tile (posn 349  318)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 425  261)) #:tile (get-tile (posn 425  261)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 715  169)) #:tile (get-tile (posn 715  169)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 838  600)) #:tile (get-tile (posn 838  600)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 805  481)) #:tile (get-tile (posn 805  481)) #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 899  886)) #:tile (get-tile (posn 899  886)) #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+     (object1 (translate (posn 1079 979)) #:tile (get-tile (posn 1079 979)) #:hue (if rc? (random 360)(random 330 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 1177 280)) #:tile (get-tile (posn 1177 280)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 1360 140)) #:tile (get-tile (posn 1360 140)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 341  657)) #:tile (get-tile (posn 341  657)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 87   524)) #:tile (get-tile (posn 87   524)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive))) 
+     (object2 (translate (posn 635  510)) #:tile (get-tile (posn 635  510)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 1253 588)) #:tile (get-tile (posn 1253 588)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 1052 636)) #:tile (get-tile (posn 1052 636)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 114  994)) #:tile (get-tile (posn 114  994)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
+     (object2 (translate (posn 736  972)) #:tile (get-tile (posn 736  972)) #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))
+  
+  #|(define objects-list (list
                         (object1 (posn 35 270)  #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
                         (object1 (posn 181 328) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
                         (object1 (posn 349 318) #:tile 0 #:hue (if rc? (random 360)(random 330 420)) (damager 5 (list 'passive)))
@@ -891,7 +931,7 @@
                         (object2 (posn 293 228) #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
                         (object2 (posn 92 276)  #:tile 5 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
                         (object2 (posn 114 274) #:tile 6 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))
-                        (object2 (posn 256 252) #:tile 7 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))
+                        (object2 (posn 256 252) #:tile 7 #:hue (if rc? (random 360)(random 220 360)) (damager 5 (list 'passive)))))|#
   (if hd?
       objects-list
       (map reduce-quality objects-list)))
