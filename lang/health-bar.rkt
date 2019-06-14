@@ -175,6 +175,8 @@
 (define (remove-on-key g e)
   (remove-component e on-key?))
 
+
+; THIS IS OLD, DON'T USE THIS.
 (define (kill-player)
   (lambda (g e1 e2)
     (define dead-player-image (rotate -90 (pick-frame-original (get-component e2 animated-sprite?) 0)))

@@ -189,7 +189,10 @@
          change-health-by
          set-health-to
          change-shield-by
-         set-shield-to)
+         set-shield-to
+
+         remove-all-but-basics
+         )
 
 (require game-engine)
 
@@ -737,4 +740,20 @@
 (define (change-shield-by amt)
   (lambda (g e)
     (change-shield e amt)))
+
+(define (remove-all-but-basics g e)
+  (remove-components e (and/c (not/c id?)
+                              (not/c bb?)
+                              (not/c posn?)
+                              (not/c entity-name?)
+                              (not/c animated-sprite?)
+                              (not/c direction?)
+                              (not/c backpack?)
+                              (not/c physical-collider?)
+                              (not/c key-movement?)
+                              (not/c storage?)
+                              (not/c damage-processor?)
+                              (not/c sound-stream?)
+                              (not/c on-collide?)
+                              (not/c after-time?))))
 
