@@ -481,16 +481,18 @@
 
 ; ======== NEW PROGRESS BAR SPRITE =====
 (define (stat-progress-bar-system color
-                           #:max    [max 100]
-                           #:offset [p (posn 0 -20)]
-                           #:width  [w 26]
-                           #:height [h 5]
-                           #:after  [f identity] ;For modifying the entity, e.g. removing lock-to?
-                           )
+                                  #:max    [max 100]
+                                  #:starting-value [sv max]
+                                  #:offset [p (posn 0 -20)]
+                                  #:width  [w 26]
+                                  #:height [h 5]
+                                  #:after  [f identity] ;For modifying the entity, e.g. removing lock-to?
+                                  )
   (λ(stat-name)
     (define (displayer sn)
       (abstract-progress-bar-system #:color color
                                     #:max   max
+                                    #:starting-value sv
                                     #:width  w
                                     #:height h
                                     #:stat-name sn
