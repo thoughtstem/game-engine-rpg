@@ -25,12 +25,15 @@
          prince-sprite
          princess-sprite
          seaserpent-sprite
+
+         fast-avatar-box
          )
 
 
 (require 2htdp/image
          game-engine
          ts-kata-util/assets/main
+         "./assets.rkt"
          )
 
 ; ==== AVATAR SHEETS =====
@@ -214,3 +217,14 @@
                  #:rows 4
                  #:row-number 3
                  #:delay 5))
+
+
+(define (fast-avatar-box e-or-s #:scale [scl 2])
+  (define avatar-sprite (cond [(entity? e-or-s) (get-component e-or-s animated-sprite?)]
+                              [(sprite? e-or-s) e-or-s]
+                              [else (error "That wasn't an entity or a sprite!")]))
+  (define cropped-sprite (apply-image-function (compose (curry crop/align 'center 'center 54 54)
+                                                        (curry scale scl)) avatar-sprite))
+  (precompile! cropped-sprite)
+  (append (list cropped-sprite)
+               (bordered-box-sprite 60 60)))

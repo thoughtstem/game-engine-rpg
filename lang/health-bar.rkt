@@ -260,18 +260,19 @@
 
 (define (abstract-progress-bar-system #:color [color 'red]
                                       #:max   [m 100]
+                                      #:starting-value [sv m]
                                       #:width [w 100]
                                       #:height [h 10]
                                       ;#:data-from data-from
                                       #:stat-name [stat-name "health"]
                                       #:offset [offset (posn 0 0)]
                                       )
-  (displayln (~a "BAR-SYSTEM STAT NAME: " stat-name))
+  ;(displayln (~a "BAR-SYSTEM STAT NAME: " stat-name))
   (define health-bar-slice (rectangle 1 1 'solid color))
-  (define initial-bar-width w) ;should get an inital value somehow
+  (define initial-bar-width (* (/ sv m) w)) ;should get an inital value somehow
   (define main-sprite (new-sprite health-bar-slice
                                   #:animate #f ; MUST NOT ANIMATE TO SATISFY IS-COMPONENT?
-                                  #:x-scale initial-bar-width
+                                  #:x-scale w  ;initial-bar-width
                                   #:x-offset (+ (posn-x offset) (/ (- initial-bar-width w) 2))
                                   #:y-offset (posn-y offset)
                                   #:y-scale h))
@@ -320,7 +321,7 @@
                border-image)
   
   (reverse (list (storage (~a stat-name "-main-sprite") main-sprite)
-                 main-sprite
+                 (set-x-scale initial-bar-width main-sprite)
                  bg-sprite
                  border-sprite
         ;(do-every 20 update-from-data)
