@@ -35,12 +35,17 @@
          RING-OF-FIRE-ICON
 
          make-icon
+         make-fancy-icon
+         make-fancy-sword-icon
+         make-triple-icon
+         make-ring-icon
          )
 
 (require game-engine
          ;(only-in rsound rsound?)
          "./combat.rkt"
-         "./health-bar.rkt")
+         "./health-bar.rkt"
+         "./assets.rkt")
 
 (define SPEAR-ICON         (bitmap "images/spear-sprite.png"))
 (define SWORD-ICON         (bitmap "images/sword-sprite.png"))
@@ -58,6 +63,78 @@
   (overlay (text t 16 "black")
          (square 28 "solid" c1)
          (square 32 "solid" c2)))
+
+; ==== NEW SPRITE BASED ICONS ====
+(define (make-fancy-icon s [c1 "yellow"] [c2 "black"])
+  (define sprite-list (list (set-sprite-angle -45 (apply-image-function (λ(i) (if (or (> (image-width i) 24)
+                                                                                      (> (image-height i) 24))
+                                                                                  (scale-to-fit i 24)
+                                                                                  i))
+                                                                        s))
+                            (make-icon "" c1 c2)))
+  (apply precompile! sprite-list)
+  sprite-list)
+
+(define (make-fancy-sword-icon s [c1 "yellow"] [c2 "black"])
+  (define sprite-list (list (set-sprite-angle 45
+                                              (apply-image-function
+                                               (compose (λ(i) (if (or (> (image-width i) 24)
+                                                                                      (> (image-height i) 24))
+                                                                                  (scale-to-fit i 24)
+                                                                                  i))
+                                                        (λ(i) (crop/align 'center 'top (image-width i) (/ (image-height i) 2) i)))
+                                               s))
+                            (make-icon "" c1 c2)))
+  (apply precompile! sprite-list)
+  sprite-list)
+
+(define (make-triple-icon s [c1 "yellow"] [c2 "black"])
+  (define (fitted-sprite) (apply-image-function (λ(i) (if (or (> (image-width i) 24)
+                                                              (> (image-height i) 24))
+                                                          (scale-to-fit i 24)
+                                                          i))
+                                                (ensure-sprite s)))
+  (define sprite-list (list (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _)
+                                (set-x-offset 5    _)
+                                (set-y-offset -5   _))
+                            (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _))
+                            (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _)
+                                (set-x-offset -5   _)
+                                (set-y-offset 5    _))
+                            (make-icon "" c1 c2)))
+  (apply precompile! sprite-list)
+  sprite-list)
+
+(define (make-ring-icon s [c1 "yellow"] [c2 "black"])
+  (define (fitted-sprite) (apply-image-function (λ(i) (if (or (> (image-width i) 24)
+                                                              (> (image-height i) 24))
+                                                          (scale-to-fit i 24)
+                                                          i))
+                                                (ensure-sprite s)))
+  (define sprite-list (list (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _)
+                                (set-x-offset -5   _)
+                                (set-y-offset 0    _))
+                            (~> (fitted-sprite)
+                                (set-scale-xy  0.75 _)
+                                (set-x-offset 5     _)
+                                (set-y-offset 0     _))
+                            (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _)
+                                (set-x-offset 0    _)
+                                (set-y-offset -5   _))
+                            (~> (fitted-sprite)
+                                (set-scale-xy 0.75 _)
+                                (set-x-offset 0    _)
+                                (set-y-offset 5    _))
+                            (make-icon "" c1 c2)))
+  (apply precompile! sprite-list)
+  sprite-list)
+
+; ===============================================
   
 
 (define spear-sprite  (bitmap "images/spear-bullet-sprite.png"))
