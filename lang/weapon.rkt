@@ -39,6 +39,7 @@
          make-fancy-sword-icon
          make-triple-icon
          make-ring-icon
+         make-tower-icon
          )
 
 (require game-engine
@@ -130,6 +131,21 @@
                                 (set-scale-xy 0.75 _)
                                 (set-x-offset 0    _)
                                 (set-y-offset 5    _))
+                            (make-icon "" c1 c2)))
+  (apply precompile! sprite-list)
+  sprite-list)
+
+(define (make-tower-icon dart-sprite tower-sprite [c1 "yellow"] [c2 "black"])
+  (define sprite-list (list (set-sprite-angle -45 (apply-image-function (λ(i) (if (or (> (image-width i) 24)
+                                                                                      (> (image-height i) 24))
+                                                                                  (scale-to-fit i 24)
+                                                                                  i))
+                                                                        dart-sprite))
+                            (apply-image-function (λ(i) (if (or (> (image-width i) 24)
+                                                                (> (image-height i) 24))
+                                                            (scale-to-fit i 24)
+                                                            i))
+                                                  tower-sprite)
                             (make-icon "" c1 c2)))
   (apply precompile! sprite-list)
   sprite-list)
