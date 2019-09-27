@@ -371,7 +371,14 @@
                   #:components (cons c custom-components))  )
 
 (define (spawn-top-from-storage g e)
-  (define to-spawn (get-storage-data "Top" e))
+  (define top (get-storage-data "Top" e))
+  (define top-sprite (get-component top animated-sprite?))
+  (define clear-top-sprite (apply-image-function (curry change-img-alpha -128) top-sprite))
+  (precompile! clear-top-sprite)
+  (define to-spawn (add-components (get-storage-data "Top" e)
+                                   (observe-change touching-pointer? (if/r touching-pointer?
+                                                                           (change-sprite clear-top-sprite)
+                                                                           (change-sprite top-sprite)))))
   ((spawn to-spawn) g (remove-storage "Top" e)))
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
