@@ -372,14 +372,43 @@
 
 (define (spawn-top-from-storage g e)
   (define top (get-storage-data "Top" e))
-  (define top-sprite (get-component top animated-sprite?))
+  (define top-posn (get-posn top))
+  (define top-sprite (struct-copy animated-sprite (get-component top animated-sprite?)
+                                  [x-offset (posn-x top-posn)]
+                                  [y-offset (posn-y top-posn)]
+                                  [layer "tops"]))
   (define clear-top-sprite (apply-image-function (curry change-img-alpha -128) top-sprite))
   (precompile! clear-top-sprite)
-  (define to-spawn (add-components (get-storage-data "Top" e)
-                                   (observe-change touching-pointer? (if/r touching-pointer?
-                                                                           (change-sprite clear-top-sprite)
-                                                                           (change-sprite top-sprite)))))
-  ((spawn to-spawn) g (remove-storage "Top" e)))
+  (define (change-top-sprite s)
+    (lambda (g e)
+      (update-entity e (curry component-eq? top-sprite) s)))
+  (define (touching-top? g e)
+    (define pos (get-posn e))
+    (define m-pos (get-mouse-pos g))
+    (define x (posn-x pos))
+    (define y (posn-y pos))
+    (define w (sprite-width top-sprite))
+    (define h (sprite-height top-sprite))
+    (define mx (posn-x m-pos))
+    (define my (posn-y m-pos))
+    (define x-offset (posn-x top-posn))
+    (define y-offset (posn-y top-posn))
+    (and (> mx (+ x (- (/ w 2)) x-offset))
+         (< mx (+ x    (/ w 2)  x-offset))
+         (> my (+ y (- (/ h 2)) y-offset))
+         (< my (+ y    (/ h 2)  y-offset))))
+  ;(define to-spawn (add-components (get-storage-data "Top" e)
+  ;                                 (observe-change touching-pointer? (if/r touching-pointer?
+  ;                                                                         (change-sprite clear-top-sprite)
+  ;                                                                         (change-sprite top-sprite)))))
+  ;((spawn to-spawn) g (remove-storage "Top" e))
+  (~> e
+      (add-components _ top-sprite
+                        (observe-change touching-top? (if/r touching-top?
+                                                            (change-top-sprite clear-top-sprite)
+                                                            (change-top-sprite  top-sprite))))
+      (remove-storage "Top" _))
+  )
 
 (define (round-tree [p (posn 0 0)] #:tile [tile 0] #:hue [hue 0] #:size [size 1] #:components (c #f) . custom-components )
   (define tree-top-entity
