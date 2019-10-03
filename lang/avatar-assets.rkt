@@ -26,6 +26,8 @@
          princess-sprite
          seaserpent-sprite
 
+         forestranger-sprite
+
          fast-avatar-box
          )
 
@@ -213,6 +215,13 @@
 
 (define seaserpent-sprite
   (sheet->sprite seaserpent-sheet
+                 #:columns 4
+                 #:rows 4
+                 #:row-number 3
+                 #:delay 5))
+
+(define forestranger-sprite
+  (sheet->sprite forestranger-sheet
                  #:columns 4
                  #:rows 4
                  #:row-number 3
