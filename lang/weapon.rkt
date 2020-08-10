@@ -397,8 +397,8 @@
 
 (define (weapon->turret c)
   (cond [(do-every? c) (struct-copy struct-do-every c [rule (near? "Enemy" 120)])]
-        [(on-key?   c) (struct-copy struct-on-key   c [rule (near? "Enemy" 120)])]
-        [(on-mouse? c) (struct-copy struct-on-mouse c [rule (near? "Enemy" 120)])]
+        [(on-key?   c) (struct-copy struct-on-key   c [rule? (near? "Enemy" 120)])]
+        [(on-mouse? c) (struct-copy struct-on-mouse c [rule? (near? "Enemy" 120)])]
         ))
 
 (define (constant-fire g e)
